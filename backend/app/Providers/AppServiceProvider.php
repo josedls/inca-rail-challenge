@@ -7,6 +7,7 @@ use App\Application\Auth\Contracts\PasswordVerifier;
 use App\Application\Auth\Contracts\TokenIssuer;
 use App\Application\Auth\Contracts\TokenRevoker;
 use App\Application\Auth\Contracts\UserFinder;
+use App\Application\Football\Contracts\FootballDataProvider;
 use App\Application\Permissions\Contracts\PermissionCreator;
 use App\Application\Permissions\Contracts\PermissionDeleter;
 use App\Application\Permissions\Contracts\PermissionReader;
@@ -25,6 +26,7 @@ use App\Infrastructure\Auth\LaravelPasswordVerifier;
 use App\Infrastructure\Auth\PassportTokenIssuer;
 use App\Infrastructure\Auth\PassportTokenRevoker;
 use App\Infrastructure\Auth\UserAccountMapper;
+use App\Infrastructure\Football\FootballDataClient;
 use App\Infrastructure\Permissions\SpatiePermissionCreator;
 use App\Infrastructure\Permissions\SpatiePermissionDeleter;
 use App\Infrastructure\Permissions\SpatiePermissionReader;
@@ -37,6 +39,7 @@ use App\Infrastructure\Users\EloquentUserCreator;
 use App\Infrastructure\Users\EloquentUserReader;
 use App\Infrastructure\Users\EloquentUserStatusChanger;
 use App\Infrastructure\Users\EloquentUserUpdater;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -52,6 +55,16 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PasswordVerifier::class, LaravelPasswordVerifier::class);
         $this->app->bind(TokenRevoker::class, PassportTokenRevoker::class);
         $this->app->bind(TokenIssuer::class, PassportTokenIssuer::class);
+        $this->app->singleton(FootballDataProvider::class, function (): FootballDataProvider {
+            return new FootballDataClient(
+                Http::baseUrl(config('services.football_data.base_url'))
+                    ->acceptJson()
+                    ->withHeaders([
+                        'X-Auth-Token' => config('services.football_data.token'),
+                    ])
+                    ->timeout(config('services.football_data.timeout')),
+            );
+        });
         $this->app->bind(UserReader::class, EloquentUserReader::class);
         $this->app->bind(UserCreator::class, EloquentUserCreator::class);
         $this->app->bind(UserUpdater::class, EloquentUserUpdater::class);

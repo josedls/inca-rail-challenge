@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'football_data' => [
+        'base_url' => env('FOOTBALL_DATA_BASE_URL', 'https://api.football-data.org/v4'),
+        'token' => env('FOOTBALL_DATA_TOKEN'),
+        'timeout' => (int) env('FOOTBALL_DATA_TIMEOUT', 5),
+    ],
+
 ];
