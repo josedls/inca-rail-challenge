@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Application\Auth\AuthenticateUser;
+use App\Application\Auth\LogoutUser;
 use App\Domain\Auth\InvalidCredentials;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 
 final class AuthController extends Controller
@@ -32,5 +34,12 @@ final class AuthController extends Controller
                 'user' => new UserResource($result->user),
             ],
         ]);
+    }
+
+    public function logout(LogoutUser $logoutUser): Response
+    {
+        $logoutUser->handle();
+
+        return response()->noContent();
     }
 }
