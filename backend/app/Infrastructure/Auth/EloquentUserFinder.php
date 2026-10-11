@@ -23,6 +23,7 @@ final class EloquentUserFinder implements UserFinder
             name: $user->name,
             email: $user->email,
             passwordHash: $user->password,
+            isActive: $user->is_active,
         );
     }
 }

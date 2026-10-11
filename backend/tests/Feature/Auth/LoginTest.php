@@ -19,6 +19,7 @@ final class LoginTest extends TestCase
             name: 'Valeria Quispe',
             email: 'valeria.quispe@inca-rail.test',
             passwordHash: 'hashed-password',
+            isActive: true,
         );
 
         $userFinder = $this->createMock(UserFinder::class);
@@ -50,6 +51,7 @@ final class LoginTest extends TestCase
             name: 'Valeria Quispe',
             email: 'valeria.quispe@inca-rail.test',
             passwordHash: 'hashed-password',
+            isActive: true,
         );
 
         $userFinder = $this->createMock(UserFinder::class);

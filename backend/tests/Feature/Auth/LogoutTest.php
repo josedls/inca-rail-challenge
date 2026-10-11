@@ -36,4 +36,26 @@ final class LogoutTest extends TestCase
         $response->assertNoContent();
         $this->assertTrue(Passport::token()->newQuery()->findOrFail($token->accessTokenId)->revoked);
     }
+
+    public function test_it_rejects_tokens_for_inactive_users(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Valeria Quispe',
+            'email' => 'valeria.quispe@inca-rail.test',
+            'is_active' => false,
+        ]);
+
+        app(ClientRepository::class)->createPersonalAccessGrantClient(
+            'Inca Rail Test Client',
+            'users',
+        );
+
+        $token = $user->createToken('inactive-user-test');
+
+        $this->withToken($token->accessToken)
+            ->postJson('/logout')
+            ->assertUnauthorized();
+
+        $this->assertFalse(Passport::token()->newQuery()->findOrFail($token->accessTokenId)->revoked);
+    }
 }

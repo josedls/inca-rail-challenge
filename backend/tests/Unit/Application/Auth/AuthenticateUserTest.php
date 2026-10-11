@@ -19,6 +19,7 @@ final class AuthenticateUserTest extends TestCase
             name: 'Valeria Quispe',
             email: 'valeria.quispe@inca-rail.test',
             passwordHash: 'hashed-password',
+            isActive: true,
         );
 
         $userFinder = $this->createMock(UserFinder::class);
@@ -83,6 +84,7 @@ final class AuthenticateUserTest extends TestCase
             name: 'Valeria Quispe',
             email: 'valeria.quispe@inca-rail.test',
             passwordHash: 'hashed-password',
+            isActive: true,
         );
 
         $userFinder = $this->createMock(UserFinder::class);
@@ -105,5 +107,33 @@ final class AuthenticateUserTest extends TestCase
             passwordVerifier: $passwordVerifier,
             tokenIssuer: $tokenIssuer,
         ))->handle('valeria.quispe@inca-rail.test', 'WrongRailway#2026');
+    }
+
+    public function test_it_rejects_inactive_users(): void
+    {
+        $user = new UserAccount(
+            id: 1,
+            name: 'Valeria Quispe',
+            email: 'valeria.quispe@inca-rail.test',
+            passwordHash: 'hashed-password',
+            isActive: false,
+        );
+
+        $userFinder = $this->createMock(UserFinder::class);
+        $userFinder->method('findByEmail')->willReturn($user);
+
+        $passwordVerifier = $this->createMock(PasswordVerifier::class);
+        $passwordVerifier->expects($this->never())->method('matches');
+
+        $tokenIssuer = $this->createMock(TokenIssuer::class);
+        $tokenIssuer->expects($this->never())->method('issue');
+
+        $this->expectException(InvalidCredentials::class);
+
+        (new AuthenticateUser(
+            userFinder: $userFinder,
+            passwordVerifier: $passwordVerifier,
+            tokenIssuer: $tokenIssuer,
+        ))->handle('valeria.quispe@inca-rail.test', 'Railway#2026');
     }
 }

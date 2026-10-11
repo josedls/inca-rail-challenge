@@ -19,7 +19,11 @@ final class AuthenticateUser
     {
         $user = $this->userFinder->findByEmail($email);
 
-        if ($user === null || ! $this->passwordVerifier->matches($password, $user->passwordHash)) {
+        if (
+            $user === null ||
+            ! $user->isActive ||
+            ! $this->passwordVerifier->matches($password, $user->passwordHash)
+        ) {
             throw new InvalidCredentials('The provided credentials are incorrect.');
         }
 

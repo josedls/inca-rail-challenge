@@ -9,5 +9,6 @@ final readonly class UserAccount
         public string $name,
         public string $email,
         public string $passwordHash,
+        public bool $isActive,
     ) {}
 }
