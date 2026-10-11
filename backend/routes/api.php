@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Football\FootballController;
 use App\Http\Controllers\Permissions\PermissionController;
 use App\Http\Controllers\Roles\RoleController;
 use App\Http\Controllers\Users\UserController;
@@ -12,6 +13,13 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware(['auth:api', EnsureUserIsActive::class])->group(function (): void {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/competitions', [FootballController::class, 'competitions'])
+        ->middleware('permission:competitions.view');
+    Route::get('/competitions/{competition}/teams', [FootballController::class, 'teams'])
+        ->middleware('permission:team.view');
+    Route::get('/teams/{team}/players', [FootballController::class, 'players'])
+        ->middleware('permission:players.view');
 
     Route::prefix('users')->group(function (): void {
         Route::get('/', [UserController::class, 'index'])
