@@ -6,6 +6,10 @@ use App\Application\Auth\Contracts\PasswordVerifier;
 use App\Application\Auth\Contracts\TokenIssuer;
 use App\Application\Auth\Contracts\TokenRevoker;
 use App\Application\Auth\Contracts\UserFinder;
+use App\Application\Roles\Contracts\RoleCreator;
+use App\Application\Roles\Contracts\RoleDeleter;
+use App\Application\Roles\Contracts\RoleReader;
+use App\Application\Roles\Contracts\RoleUpdater;
 use App\Application\Users\Contracts\UserCreator;
 use App\Application\Users\Contracts\UserReader;
 use App\Application\Users\Contracts\UserStatusChanger;
@@ -14,6 +18,10 @@ use App\Infrastructure\Auth\EloquentUserFinder;
 use App\Infrastructure\Auth\LaravelPasswordVerifier;
 use App\Infrastructure\Auth\PassportTokenIssuer;
 use App\Infrastructure\Auth\PassportTokenRevoker;
+use App\Infrastructure\Roles\SpatieRoleCreator;
+use App\Infrastructure\Roles\SpatieRoleDeleter;
+use App\Infrastructure\Roles\SpatieRoleReader;
+use App\Infrastructure\Roles\SpatieRoleUpdater;
 use App\Infrastructure\Users\EloquentUserCreator;
 use App\Infrastructure\Users\EloquentUserReader;
 use App\Infrastructure\Users\EloquentUserStatusChanger;
@@ -35,6 +43,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserCreator::class, EloquentUserCreator::class);
         $this->app->bind(UserUpdater::class, EloquentUserUpdater::class);
         $this->app->bind(UserStatusChanger::class, EloquentUserStatusChanger::class);
+        $this->app->bind(RoleReader::class, SpatieRoleReader::class);
+        $this->app->bind(RoleCreator::class, SpatieRoleCreator::class);
+        $this->app->bind(RoleUpdater::class, SpatieRoleUpdater::class);
+        $this->app->bind(RoleDeleter::class, SpatieRoleDeleter::class);
     }
 
     /**
