@@ -6,6 +6,10 @@ use App\Application\Auth\Contracts\PasswordVerifier;
 use App\Application\Auth\Contracts\TokenIssuer;
 use App\Application\Auth\Contracts\TokenRevoker;
 use App\Application\Auth\Contracts\UserFinder;
+use App\Application\Permissions\Contracts\PermissionCreator;
+use App\Application\Permissions\Contracts\PermissionDeleter;
+use App\Application\Permissions\Contracts\PermissionReader;
+use App\Application\Permissions\Contracts\PermissionUpdater;
 use App\Application\Roles\Contracts\RoleCreator;
 use App\Application\Roles\Contracts\RoleDeleter;
 use App\Application\Roles\Contracts\RoleReader;
@@ -18,6 +22,10 @@ use App\Infrastructure\Auth\EloquentUserFinder;
 use App\Infrastructure\Auth\LaravelPasswordVerifier;
 use App\Infrastructure\Auth\PassportTokenIssuer;
 use App\Infrastructure\Auth\PassportTokenRevoker;
+use App\Infrastructure\Permissions\SpatiePermissionCreator;
+use App\Infrastructure\Permissions\SpatiePermissionDeleter;
+use App\Infrastructure\Permissions\SpatiePermissionReader;
+use App\Infrastructure\Permissions\SpatiePermissionUpdater;
 use App\Infrastructure\Roles\SpatieRoleCreator;
 use App\Infrastructure\Roles\SpatieRoleDeleter;
 use App\Infrastructure\Roles\SpatieRoleReader;
@@ -47,6 +55,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(RoleCreator::class, SpatieRoleCreator::class);
         $this->app->bind(RoleUpdater::class, SpatieRoleUpdater::class);
         $this->app->bind(RoleDeleter::class, SpatieRoleDeleter::class);
+        $this->app->bind(PermissionReader::class, SpatiePermissionReader::class);
+        $this->app->bind(PermissionCreator::class, SpatiePermissionCreator::class);
+        $this->app->bind(PermissionUpdater::class, SpatiePermissionUpdater::class);
+        $this->app->bind(PermissionDeleter::class, SpatiePermissionDeleter::class);
     }
 
     /**

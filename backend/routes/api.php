@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Permissions\PermissionController;
 use App\Http\Controllers\Roles\RoleController;
 use App\Http\Controllers\Users\UserController;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -31,5 +32,16 @@ Route::middleware(['auth:api', EnsureUserIsActive::class])->group(function (): v
             ->middleware('permission:roles.update');
         Route::delete('/{role}', [RoleController::class, 'destroy'])
             ->middleware('permission:roles.delete');
+    });
+
+    Route::prefix('permissions')->group(function (): void {
+        Route::get('/', [PermissionController::class, 'index'])
+            ->middleware('permission:permissions.view');
+        Route::post('/', [PermissionController::class, 'store'])
+            ->middleware('permission:permissions.create');
+        Route::patch('/{permission}', [PermissionController::class, 'update'])
+            ->middleware('permission:permissions.update');
+        Route::delete('/{permission}', [PermissionController::class, 'destroy'])
+            ->middleware('permission:permissions.delete');
     });
 });
