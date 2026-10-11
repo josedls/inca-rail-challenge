@@ -6,11 +6,13 @@ use App\Application\Auth\Contracts\PasswordVerifier;
 use App\Application\Auth\Contracts\TokenIssuer;
 use App\Application\Auth\Contracts\TokenRevoker;
 use App\Application\Auth\Contracts\UserFinder;
+use App\Application\Users\Contracts\UserCreator;
 use App\Application\Users\Contracts\UserReader;
 use App\Infrastructure\Auth\EloquentUserFinder;
 use App\Infrastructure\Auth\LaravelPasswordVerifier;
 use App\Infrastructure\Auth\PassportTokenIssuer;
 use App\Infrastructure\Auth\PassportTokenRevoker;
+use App\Infrastructure\Users\EloquentUserCreator;
 use App\Infrastructure\Users\EloquentUserReader;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TokenRevoker::class, PassportTokenRevoker::class);
         $this->app->bind(TokenIssuer::class, PassportTokenIssuer::class);
         $this->app->bind(UserReader::class, EloquentUserReader::class);
+        $this->app->bind(UserCreator::class, EloquentUserCreator::class);
     }
 
     /**

@@ -10,3 +10,5 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware(['auth:api', EnsureUserIsActive::class]);
 Route::get('/users', [UserController::class, 'index'])
     ->middleware(['auth:api', EnsureUserIsActive::class, 'permission:users.view']);
+Route::post('/users', [UserController::class, 'store'])
+    ->middleware(['auth:api', EnsureUserIsActive::class, 'permission:users.create']);
