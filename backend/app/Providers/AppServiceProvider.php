@@ -8,12 +8,16 @@ use App\Application\Auth\Contracts\TokenRevoker;
 use App\Application\Auth\Contracts\UserFinder;
 use App\Application\Users\Contracts\UserCreator;
 use App\Application\Users\Contracts\UserReader;
+use App\Application\Users\Contracts\UserStatusChanger;
+use App\Application\Users\Contracts\UserUpdater;
 use App\Infrastructure\Auth\EloquentUserFinder;
 use App\Infrastructure\Auth\LaravelPasswordVerifier;
 use App\Infrastructure\Auth\PassportTokenIssuer;
 use App\Infrastructure\Auth\PassportTokenRevoker;
 use App\Infrastructure\Users\EloquentUserCreator;
 use App\Infrastructure\Users\EloquentUserReader;
+use App\Infrastructure\Users\EloquentUserStatusChanger;
+use App\Infrastructure\Users\EloquentUserUpdater;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -29,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TokenIssuer::class, PassportTokenIssuer::class);
         $this->app->bind(UserReader::class, EloquentUserReader::class);
         $this->app->bind(UserCreator::class, EloquentUserCreator::class);
+        $this->app->bind(UserUpdater::class, EloquentUserUpdater::class);
+        $this->app->bind(UserStatusChanger::class, EloquentUserStatusChanger::class);
     }
 
     /**

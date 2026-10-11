@@ -6,9 +6,18 @@ use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])
-    ->middleware(['auth:api', EnsureUserIsActive::class]);
-Route::get('/users', [UserController::class, 'index'])
-    ->middleware(['auth:api', EnsureUserIsActive::class, 'permission:users.view']);
-Route::post('/users', [UserController::class, 'store'])
-    ->middleware(['auth:api', EnsureUserIsActive::class, 'permission:users.create']);
+
+Route::middleware(['auth:api', EnsureUserIsActive::class])->group(function (): void {
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::prefix('users')->group(function (): void {
+        Route::get('/', [UserController::class, 'index'])
+            ->middleware('permission:users.view');
+        Route::post('/', [UserController::class, 'store'])
+            ->middleware('permission:users.create');
+        Route::patch('/{user}', [UserController::class, 'update'])
+            ->middleware('permission:users.update');
+        Route::patch('/{user}/status', [UserController::class, 'changeStatus'])
+            ->middleware('permission:users.update');
+    });
+});
