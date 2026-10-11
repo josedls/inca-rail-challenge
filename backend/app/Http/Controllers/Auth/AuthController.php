@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Application\Auth\AuthenticateUser;
+use App\Application\Auth\GetCurrentUser;
 use App\Application\Auth\LogoutUser;
 use App\Domain\Auth\InvalidCredentials;
 use App\Http\Controllers\Controller;
@@ -14,6 +15,13 @@ use Illuminate\Validation\ValidationException;
 
 final class AuthController extends Controller
 {
+    public function me(GetCurrentUser $getCurrentUser): JsonResponse
+    {
+        return response()->json([
+            'data' => new UserResource($getCurrentUser->handle()),
+        ]);
+    }
+
     public function login(LoginRequest $request, AuthenticateUser $authenticateUser): JsonResponse
     {
         try {

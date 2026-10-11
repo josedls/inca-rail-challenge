@@ -10,5 +10,7 @@ final readonly class UserAccount
         public string $email,
         public string $passwordHash,
         public bool $isActive,
+        public array $roles = [],
+        public array $permissions = [],
     ) {}
 }

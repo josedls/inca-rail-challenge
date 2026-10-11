@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Application\Auth\Contracts\CurrentUserReader;
 use App\Application\Auth\Contracts\PasswordVerifier;
 use App\Application\Auth\Contracts\TokenIssuer;
 use App\Application\Auth\Contracts\TokenRevoker;
@@ -18,10 +19,12 @@ use App\Application\Users\Contracts\UserCreator;
 use App\Application\Users\Contracts\UserReader;
 use App\Application\Users\Contracts\UserStatusChanger;
 use App\Application\Users\Contracts\UserUpdater;
+use App\Infrastructure\Auth\EloquentCurrentUserReader;
 use App\Infrastructure\Auth\EloquentUserFinder;
 use App\Infrastructure\Auth\LaravelPasswordVerifier;
 use App\Infrastructure\Auth\PassportTokenIssuer;
 use App\Infrastructure\Auth\PassportTokenRevoker;
+use App\Infrastructure\Auth\UserAccountMapper;
 use App\Infrastructure\Permissions\SpatiePermissionCreator;
 use App\Infrastructure\Permissions\SpatiePermissionDeleter;
 use App\Infrastructure\Permissions\SpatiePermissionReader;
@@ -44,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(UserFinder::class, EloquentUserFinder::class);
+        $this->app->bind(CurrentUserReader::class, EloquentCurrentUserReader::class);
+        $this->app->singleton(UserAccountMapper::class);
         $this->app->bind(PasswordVerifier::class, LaravelPasswordVerifier::class);
         $this->app->bind(TokenRevoker::class, PassportTokenRevoker::class);
         $this->app->bind(TokenIssuer::class, PassportTokenIssuer::class);

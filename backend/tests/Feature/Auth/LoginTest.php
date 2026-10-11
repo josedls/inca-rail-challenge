@@ -100,6 +100,8 @@ final class LoginTest extends TestCase
             ->assertJsonPath('data.user.id', $user->id)
             ->assertJsonPath('data.user.name', $user->name)
             ->assertJsonPath('data.user.email', $user->email)
+            ->assertJsonPath('data.user.roles', [])
+            ->assertJsonPath('data.user.permissions', [])
             ->assertJsonMissingPath('data.user.password');
     }
 }
