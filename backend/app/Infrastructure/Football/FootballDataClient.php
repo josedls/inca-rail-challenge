@@ -13,12 +13,15 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class FootballDataClient implements FootballDataProvider
 {
+    private const NOT_CONFIGURED_MESSAGE = 'Football data integration is not configured.';
+
     private const SERVICE_UNAVAILABLE_MESSAGE = 'Football data service is unavailable.';
 
     private const INVALID_RESPONSE_MESSAGE = 'Football data service returned an invalid response.';
 
     public function __construct(
         private readonly PendingRequest $client,
+        private readonly ?string $token,
     ) {}
 
     public function competitions(): array
@@ -53,6 +56,8 @@ final class FootballDataClient implements FootballDataProvider
 
     private function get(string $uri): array
     {
+        $this->ensureConfigured();
+
         try {
             $response = $this->client->get($uri);
         } catch (ConnectionException $exception) {
@@ -82,6 +87,18 @@ final class FootballDataClient implements FootballDataProvider
         }
 
         return $this->payloadFrom($response->json());
+    }
+
+    private function ensureConfigured(): void
+    {
+        if (is_string($this->token) && trim($this->token) !== '') {
+            return;
+        }
+
+        throw new FootballDataApiException(
+            self::NOT_CONFIGURED_MESSAGE,
+            Response::HTTP_SERVICE_UNAVAILABLE,
+        );
     }
 
     private function itemsFrom(array $payload, string $key): array

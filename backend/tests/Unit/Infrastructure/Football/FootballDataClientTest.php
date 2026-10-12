@@ -139,7 +139,24 @@ final class FootballDataClientTest extends TestCase
         }
     }
 
-    private function client(string $token = 'test-token'): FootballDataClient
+    public function test_it_rejects_requests_when_the_api_token_is_not_configured(): void
+    {
+        Http::fake();
+
+        $this->expectException(FootballDataApiException::class);
+        $this->expectExceptionMessage('Football data integration is not configured.');
+
+        try {
+            $this->client(null)->competitions();
+        } catch (FootballDataApiException $exception) {
+            self::assertSame(503, $exception->statusCode);
+            Http::assertNothingSent();
+
+            throw $exception;
+        }
+    }
+
+    private function client(?string $token = 'test-token'): FootballDataClient
     {
         return new FootballDataClient(
             Http::baseUrl('https://api.football-data.test/v4')
@@ -147,6 +164,7 @@ final class FootballDataClientTest extends TestCase
                 ->withHeaders([
                     'X-Auth-Token' => $token,
                 ]),
+            $token,
         );
     }
 }

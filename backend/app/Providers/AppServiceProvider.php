@@ -63,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
                         'X-Auth-Token' => config('services.football_data.token'),
                     ])
                     ->timeout(config('services.football_data.timeout')),
+                config('services.football_data.token'),
             );
         });
         $this->app->bind(UserReader::class, EloquentUserReader::class);

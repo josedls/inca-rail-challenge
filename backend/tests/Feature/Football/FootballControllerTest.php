@@ -14,6 +14,15 @@ final class FootballControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'services.football_data.token' => 'test-token',
+        ]);
+    }
+
     public function test_it_lists_competitions_for_authorized_users(): void
     {
         Http::fake([
