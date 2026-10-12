@@ -45,5 +45,6 @@ describe('application router', () => {
     await router.isReady()
 
     expect(router.currentRoute.value.name).toBe('login')
+    expect(router.currentRoute.value.query.redirect).toBe('/')
   })
 })

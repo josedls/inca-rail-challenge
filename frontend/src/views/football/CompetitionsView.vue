@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ApiError } from '../../services/httpClient'
 import {
   importCompetition,
@@ -13,7 +13,27 @@ const isSyncing = ref(false)
 const errorMessage = ref('')
 const importingCompetitions = ref<Record<number, boolean>>({})
 const pendingImports = ref<Record<number, boolean>>({})
+const search = ref('')
+const page = ref(1)
+const itemsPerPage = ref(12)
+const filteredCompetitions = computed(() => {
+  const normalizedSearch = search.value.trim().toLocaleLowerCase()
+
+  return competitions.value.filter((competition) => [competition.name, competition.code]
+    .filter(Boolean)
+    .some((value) => value!.toLocaleLowerCase().includes(normalizedSearch)))
+})
+const pageCount = computed(() => Math.max(1, Math.ceil(filteredCompetitions.value.length / itemsPerPage.value)))
+const visibleCompetitions = computed(() => {
+  const start = (page.value - 1) * itemsPerPage.value
+
+  return filteredCompetitions.value.slice(start, start + itemsPerPage.value)
+})
 let refreshTimer: number | undefined
+
+watch([search, itemsPerPage], () => {
+  page.value = 1
+})
 
 onMounted(loadCompetitions)
 onUnmounted(() => {
@@ -186,8 +206,39 @@ function getFootballErrorMessage(error: unknown): string {
       <p class="text-medium-emphasis">La sincronización inicial se iniciará automáticamente.</p>
     </v-card>
 
-    <v-row v-else>
-      <v-col v-for="competition in competitions" :key="competition.id" cols="12" sm="6" lg="4">
+    <template v-else>
+      <v-card class="mb-6 pa-4">
+        <v-row>
+          <v-col cols="12" md="9">
+            <v-text-field
+              v-model="search"
+              clearable
+              hide-details
+              label="Buscar liga"
+              prepend-inner-icon="mdi-magnify"
+              placeholder="Nombre o código"
+              @click:clear="search = ''"
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-select
+              v-model="itemsPerPage"
+              :items="[6, 12, 24]"
+              hide-details
+              label="Por página"
+            />
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card v-if="filteredCompetitions.length === 0" class="pa-8 text-center">
+        <v-icon icon="mdi-filter-off-outline" size="48" class="mb-4" />
+        <h2 class="text-h6 mb-2">No encontramos ligas</h2>
+        <p class="text-medium-emphasis">Prueba con otro término de búsqueda.</p>
+      </v-card>
+
+      <v-row v-else>
+      <v-col v-for="competition in visibleCompetitions" :key="competition.id" cols="12" sm="6" lg="4">
         <v-card
           class="h-100 d-flex flex-column"
           :to="{ name: 'competition-detail', params: { competition: competition.id } }"
@@ -230,17 +281,29 @@ function getFootballErrorMessage(error: unknown): string {
             </v-btn>
           </v-card-actions>
 
-          <small v-if="competition.last_synced_at" class="d-block px-4 pb-3 text-medium-emphasis">
+          <div
+            v-if="competition.last_synced_at"
+            class="px-4 pb-3 text-caption text-medium-emphasis"
+          >
             Última actualización: {{ formatLastSyncedAt(competition.last_synced_at) }}
-          </small>
+          </div>
 
           <div
             v-if="competition.import_status === 'processing' && competition.import_progress.total > 0"
             class="px-4 pb-4"
           >
-            <div class="d-flex justify-space-between text-caption mb-1">
-              <span>Importando jugadores de los equipos</span>
-              <span>{{ competition.import_progress.completed }} de {{ competition.import_progress.total }} equipos procesados</span>
+            <div class="text-body-2 mb-1">
+              Sincronizando jugadores de los equipos
+            </div>
+            <div class="text-caption text-medium-emphasis mb-2">
+              Jugadores sincronizados en
+              {{ competition.import_progress.completed + competition.import_progress.failed }} de
+              {{ competition.import_progress.total }} equipos
+            </div>
+            <div class="text-caption text-medium-emphasis mb-2">
+              {{ competition.import_progress.completed }} completados ·
+              {{ competition.import_progress.failed }} con error ·
+              {{ competition.import_progress.pending }} pendientes
             </div>
             <v-progress-linear
               :model-value="competition.import_progress.percentage"
@@ -250,6 +313,15 @@ function getFootballErrorMessage(error: unknown): string {
           </div>
         </v-card>
       </v-col>
-    </v-row>
+      </v-row>
+
+      <v-pagination
+        v-if="pageCount > 1"
+        v-model="page"
+        class="mt-6"
+        :length="pageCount"
+        rounded="circle"
+      />
+    </template>
   </v-container>
 </template>

@@ -1,11 +1,42 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { ApiError } from '../../services/httpClient'
 import { listPlayers, type Player } from '../../services/footballApi'
 
 const players = ref<Player[]>([])
 const isLoading = ref(true)
 const errorMessage = ref('')
+const search = ref('')
+const selectedPosition = ref<string | null>(null)
+const selectedNationality = ref<string | null>(null)
+const page = ref(1)
+const itemsPerPage = ref(12)
+
+const positions = computed(() => getFilterOptions('position'))
+const nationalities = computed(() => getFilterOptions('nationality'))
+const filteredPlayers = computed(() => {
+  const normalizedSearch = search.value.trim().toLocaleLowerCase()
+
+  return players.value.filter((player) => {
+    const matchesSearch = [player.name, player.position, player.nationality]
+      .filter(Boolean)
+      .some((value) => value!.toLocaleLowerCase().includes(normalizedSearch))
+    const matchesPosition = !selectedPosition.value || player.position === selectedPosition.value
+    const matchesNationality = !selectedNationality.value || player.nationality === selectedNationality.value
+
+    return matchesSearch && matchesPosition && matchesNationality
+  })
+})
+const pageCount = computed(() => Math.max(1, Math.ceil(filteredPlayers.value.length / itemsPerPage.value)))
+const visiblePlayers = computed(() => {
+  const start = (page.value - 1) * itemsPerPage.value
+
+  return filteredPlayers.value.slice(start, start + itemsPerPage.value)
+})
+
+watch([search, selectedPosition, selectedNationality, itemsPerPage], () => {
+  page.value = 1
+})
 
 onMounted(loadPlayers)
 
@@ -28,6 +59,14 @@ function getPlayersErrorMessage(error: unknown): string {
   }
 
   return 'No pudimos cargar los jugadores. Inténtalo nuevamente.'
+}
+
+function getFilterOptions(field: 'position' | 'nationality'): string[] {
+  return [...new Set(
+    players.value
+      .map((player) => player[field])
+      .filter((value): value is string => Boolean(value)),
+  )].sort((first, second) => first.localeCompare(second))
 }
 </script>
 
@@ -58,8 +97,57 @@ function getPlayersErrorMessage(error: unknown): string {
       <p class="text-medium-emphasis">Importa una liga para conservar sus jugadores.</p>
     </v-card>
 
-    <v-row v-else>
-      <v-col v-for="player in players" :key="player.id" cols="12" sm="6" lg="4">
+    <template v-else>
+      <v-card class="mb-6 pa-4">
+        <v-row>
+          <v-col cols="12" md="4">
+            <v-text-field
+              v-model="search"
+              clearable
+              hide-details
+              label="Buscar jugador"
+              prepend-inner-icon="mdi-magnify"
+              placeholder="Nombre, posición o nacionalidad"
+              @click:clear="search = ''"
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-select
+              v-model="selectedPosition"
+              :items="positions"
+              clearable
+              hide-details
+              label="Posición"
+            />
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
+            <v-select
+              v-model="selectedNationality"
+              :items="nationalities"
+              clearable
+              hide-details
+              label="Nacionalidad"
+            />
+          </v-col>
+          <v-col cols="12" md="2">
+            <v-select
+              v-model="itemsPerPage"
+              :items="[6, 12, 24]"
+              hide-details
+              label="Por página"
+            />
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card v-if="filteredPlayers.length === 0" class="pa-8 text-center">
+        <v-icon icon="mdi-filter-off-outline" size="48" class="mb-4" />
+        <h2 class="text-h6 mb-2">No encontramos jugadores</h2>
+        <p class="text-medium-emphasis">Prueba con otros términos o filtros.</p>
+      </v-card>
+
+      <v-row v-else>
+      <v-col v-for="player in visiblePlayers" :key="player.id" cols="12" sm="6" lg="4">
         <v-card class="h-100">
           <v-card-item>
             <template #prepend>
@@ -77,6 +165,15 @@ function getPlayersErrorMessage(error: unknown): string {
           </v-card-text>
         </v-card>
       </v-col>
-    </v-row>
+      </v-row>
+
+      <v-pagination
+        v-if="pageCount > 1"
+        v-model="page"
+        class="mt-6"
+        :length="pageCount"
+        rounded="circle"
+      />
+    </template>
   </v-container>
 </template>

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../app/stores/auth'
 import { login } from '../../services/authApi'
 import { ApiError } from '../../services/httpClient'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
@@ -23,12 +24,27 @@ async function submit(): Promise<void> {
     })
 
     authStore.setSession(session.token, session.user)
-    await router.push({ name: 'home' })
+    await router.push(getPostLoginPath())
   } catch (error) {
     errorMessage.value = getLoginErrorMessage(error)
   } finally {
     isSubmitting.value = false
   }
+}
+
+function getPostLoginPath(): string {
+  const redirect = route.query.redirect
+
+  if (
+    typeof redirect === 'string'
+    && redirect !== '/'
+    && redirect.startsWith('/')
+    && !redirect.startsWith('//')
+  ) {
+    return redirect
+  }
+
+  return '/competitions'
 }
 
 function getLoginErrorMessage(error: unknown): string {

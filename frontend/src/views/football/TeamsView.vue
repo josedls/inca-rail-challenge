@@ -1,11 +1,31 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { ApiError } from '../../services/httpClient'
 import { listTeams, type Team } from '../../services/footballApi'
 
 const teams = ref<Team[]>([])
 const isLoading = ref(true)
 const errorMessage = ref('')
+const search = ref('')
+const page = ref(1)
+const itemsPerPage = ref(12)
+const filteredTeams = computed(() => {
+  const normalizedSearch = search.value.trim().toLocaleLowerCase()
+
+  return teams.value.filter((team) => [team.name, team.short_name]
+    .filter(Boolean)
+    .some((value) => value!.toLocaleLowerCase().includes(normalizedSearch)))
+})
+const pageCount = computed(() => Math.max(1, Math.ceil(filteredTeams.value.length / itemsPerPage.value)))
+const visibleTeams = computed(() => {
+  const start = (page.value - 1) * itemsPerPage.value
+
+  return filteredTeams.value.slice(start, start + itemsPerPage.value)
+})
+
+watch([search, itemsPerPage], () => {
+  page.value = 1
+})
 
 onMounted(loadTeams)
 
@@ -58,8 +78,39 @@ function getTeamsErrorMessage(error: unknown): string {
       <p class="text-medium-emphasis">Importa una liga para conservar sus equipos.</p>
     </v-card>
 
-    <v-row v-else>
-      <v-col v-for="team in teams" :key="team.id" cols="12" sm="6" lg="4">
+    <template v-else>
+      <v-card class="mb-6 pa-4">
+        <v-row>
+          <v-col cols="12" md="9">
+            <v-text-field
+              v-model="search"
+              clearable
+              hide-details
+              label="Buscar equipo"
+              prepend-inner-icon="mdi-magnify"
+              placeholder="Nombre o nombre corto"
+              @click:clear="search = ''"
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-select
+              v-model="itemsPerPage"
+              :items="[6, 12, 24]"
+              hide-details
+              label="Por página"
+            />
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-card v-if="filteredTeams.length === 0" class="pa-8 text-center">
+        <v-icon icon="mdi-filter-off-outline" size="48" class="mb-4" />
+        <h2 class="text-h6 mb-2">No encontramos equipos</h2>
+        <p class="text-medium-emphasis">Prueba con otro término de búsqueda.</p>
+      </v-card>
+
+      <v-row v-else>
+      <v-col v-for="team in visibleTeams" :key="team.id" cols="12" sm="6" lg="4">
         <v-card
           class="h-100"
           :to="{ name: 'team-detail', params: { team: team.id } }"
@@ -77,6 +128,15 @@ function getTeamsErrorMessage(error: unknown): string {
           </v-card-item>
         </v-card>
       </v-col>
-    </v-row>
+      </v-row>
+
+      <v-pagination
+        v-if="pageCount > 1"
+        v-model="page"
+        class="mt-6"
+        :length="pageCount"
+        rounded="circle"
+      />
+    </template>
   </v-container>
 </template>

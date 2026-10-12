@@ -10,6 +10,23 @@ const team = ref<Team | null>(null)
 const isLoading = ref(true)
 const errorMessage = ref('')
 
+function backRoute(): { name: string; params?: Record<string, string> } {
+  const competitionId = route.query.competition
+
+  if (route.query.from === 'competition' && typeof competitionId === 'string') {
+    return {
+      name: 'competition-detail',
+      params: { competition: competitionId },
+    }
+  }
+
+  return { name: 'teams' }
+}
+
+function backLabel(): string {
+  return route.query.from === 'competition' ? 'Volver a la liga' : 'Volver a equipos'
+}
+
 onMounted(loadTeam)
 
 async function loadTeam(): Promise<void> {
@@ -41,9 +58,9 @@ function getTeamErrorMessage(error: unknown): string {
       class="mb-6"
       prepend-icon="mdi-arrow-left"
       variant="text"
-      @click="router.push({ name: 'teams' })"
+      @click="router.push(backRoute())"
     >
-      Volver a equipos
+      {{ backLabel() }}
     </v-btn>
 
     <div v-if="isLoading" class="d-flex justify-center py-12">

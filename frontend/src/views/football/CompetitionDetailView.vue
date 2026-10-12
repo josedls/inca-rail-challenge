@@ -111,20 +111,37 @@ function statusColor(status: Competition['import_status']): string {
           <v-card class="h-100 pa-5">
             <div class="d-flex justify-space-between mb-2">
               <span class="text-subtitle-1">Importación</span>
-              <span class="text-body-2">{{ competition.import_progress.percentage }}%</span>
+              <span class="text-body-2">
+                {{ competition.import_status === 'processing' ? 'Sincronizando jugadores de los equipos · ' : '' }}
+                {{ competition.import_progress.percentage }}%
+              </span>
             </div>
             <v-progress-linear
               :model-value="competition.import_progress.percentage"
               :color="statusColor(competition.import_status)"
               rounded
             />
-            <p v-if="competition.import_error" class="text-body-2 text-error mt-4">
-              {{ competition.import_error }}
+            <p class="text-body-2 text-medium-emphasis mt-4">
+              Jugadores sincronizados en
+              {{ competition.import_progress.completed + competition.import_progress.failed }} de
+              {{ competition.import_progress.total }} equipos
             </p>
-            <p v-else class="text-body-2 text-medium-emphasis mt-4">
-              {{ competition.import_progress.completed }} equipos procesados,
-              {{ competition.import_progress.pending }} pendientes y
-              {{ competition.import_progress.failed }} con error.
+            <p class="text-body-2 text-medium-emphasis mt-2">
+              {{ competition.import_progress.completed }} completados ·
+              {{ competition.import_progress.failed }} con error ·
+              {{ competition.import_progress.pending }} pendientes
+            </p>
+            <p
+              v-if="competition.import_status === 'processing' && competition.import_progress.failed > 0"
+              class="text-body-2 text-warning mt-2"
+            >
+              Algunos equipos no pudieron sincronizarse.
+            </p>
+            <p
+              v-if="competition.import_status === 'failed' && competition.import_error"
+              class="text-body-2 text-error mt-2"
+            >
+              Detalle: {{ competition.import_error }}
             </p>
           </v-card>
         </v-col>
@@ -141,7 +158,11 @@ function statusColor(status: Competition['import_status']): string {
           <v-list-item
             v-for="team in competition.teams"
             :key="team.id"
-            :to="{ name: 'team-detail', params: { team: team.id } }"
+            :to="{
+              name: 'team-detail',
+              params: { team: team.id },
+              query: { from: 'competition', competition: route.params.competition },
+            }"
           >
             <template #prepend>
               <v-avatar color="primary" rounded="lg">
