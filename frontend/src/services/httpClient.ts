@@ -1,3 +1,5 @@
+import { clearStoredSession, getStoredToken, useAuthStore } from '../app/stores/auth'
+
 export class ApiError extends Error {
   public readonly status: number
   public readonly details: unknown
@@ -17,11 +19,14 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
     throw new Error('The frontend API URL is not configured.')
   }
 
+  const token = getStoredToken()
+
   const response = await fetch(`${apiUrl}${path}`, {
     ...options,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   })
@@ -29,6 +34,11 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
   const body = await readResponseBody(response)
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearStoredSession()
+      useAuthStore().clearSession()
+    }
+
     const message = getErrorMessage(body, response.statusText)
     throw new ApiError(response.status, message, body)
   }
