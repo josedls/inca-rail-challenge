@@ -21,6 +21,7 @@ async function signOut(): Promise<void> {
     <v-app-bar-title>Inca Rail Challenge</v-app-bar-title>
 
     <template #append>
+      <v-btn to="/competitions" variant="text">Ligas</v-btn>
       <span class="mr-4">{{ authStore.user?.name }}</span>
       <v-btn variant="text" @click="signOut">Cerrar sesión</v-btn>
     </template>

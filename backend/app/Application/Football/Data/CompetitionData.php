@@ -14,5 +14,8 @@ final readonly class CompetitionData
         public ?CompetitionImportStatus $importStatus = null,
         public ?string $importError = null,
         public ?string $lastSyncedAt = null,
+        public int $pendingPlayerImports = 0,
+        public int $totalTeams = 0,
+        public int $failedPlayerImports = 0,
     ) {}
 }

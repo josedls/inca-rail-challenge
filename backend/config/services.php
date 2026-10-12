@@ -39,6 +39,7 @@ return [
         'base_url' => env('FOOTBALL_DATA_BASE_URL', 'https://api.football-data.org/v4'),
         'token' => env('FOOTBALL_DATA_TOKEN'),
         'timeout' => (int) env('FOOTBALL_DATA_TIMEOUT', 5),
+        'retry_window_minutes' => (int) env('FOOTBALL_DATA_RETRY_WINDOW_MINUTES', 15),
     ],
 
 ];

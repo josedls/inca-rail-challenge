@@ -13,6 +13,10 @@ vi.mock('../../layouts/AppLayout.vue', () => ({
   default: { template: '<div />' },
 }))
 
+vi.mock('../../views/football/CompetitionsView.vue', () => ({
+  default: { template: '<div />' },
+}))
+
 import { router } from './index'
 
 describe('application router', () => {

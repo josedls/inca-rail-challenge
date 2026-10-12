@@ -11,6 +11,7 @@ use App\Jobs\Football\ImportCompetitionJob;
 use App\Jobs\Football\ImportCompetitionTeamsJob;
 use App\Jobs\Football\ImportTeamPlayersJob;
 use App\Jobs\Football\SyncCompetitionsJob;
+use DateTimeInterface;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -37,6 +38,8 @@ final class ImportFootballJobsTest extends TestCase
 
         Queue::assertPushed(ImportCompetitionTeamsJob::class);
         self::assertInstanceOf(RateLimited::class, (new ImportCompetitionJob(2021))->middleware()[0]);
+        self::assertSame(0, (new ImportCompetitionJob(2021))->tries);
+        self::assertInstanceOf(DateTimeInterface::class, (new ImportCompetitionJob(2021))->retryUntil());
     }
 
     public function test_team_job_saves_data_and_dispatches_player_imports(): void

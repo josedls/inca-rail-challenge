@@ -16,5 +16,7 @@ interface FootballCatalogWriter
 
     public function markPlayerImportCompleted(int $competitionId): void;
 
+    public function markPlayerImportFailed(int $competitionId, string $message): void;
+
     public function markCompetitionFailed(int $competitionId, string $message): void;
 }

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import AppLayout from '../../layouts/AppLayout.vue'
+import CompetitionsView from '../../views/football/CompetitionsView.vue'
 import HomeView from '../../views/HomeView.vue'
 import LoginView from '../../views/auth/LoginView.vue'
 
@@ -16,6 +17,11 @@ export const router = createRouter({
         {
           path: '',
           component: HomeView,
+        },
+        {
+          path: 'competitions',
+          name: 'competitions',
+          component: CompetitionsView,
         },
       ],
     },

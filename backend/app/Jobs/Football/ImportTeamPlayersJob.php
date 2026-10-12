@@ -4,6 +4,7 @@ namespace App\Jobs\Football;
 
 use App\Application\Football\Contracts\FootballCatalogWriter;
 use App\Application\Football\Contracts\FootballDataProvider;
+use App\Jobs\Football\Concerns\RespectsFootballDataRetryWindow;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,8 +17,7 @@ use Throwable;
 final class ImportTeamPlayersJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public int $tries = 3;
+    use RespectsFootballDataRetryWindow;
 
     public array $backoff = [60, 120, 300];
 
@@ -51,7 +51,7 @@ final class ImportTeamPlayersJob implements ShouldBeUnique, ShouldQueue
 
     public function failed(?Throwable $exception): void
     {
-        app(FootballCatalogWriter::class)->markCompetitionFailed(
+        app(FootballCatalogWriter::class)->markPlayerImportFailed(
             $this->competitionId,
             $exception?->getMessage() ?? 'Player import failed.',
         );

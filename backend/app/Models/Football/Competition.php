@@ -18,6 +18,7 @@ final class Competition extends Model
         'import_status',
         'import_error',
         'pending_player_imports',
+        'failed_player_imports',
         'import_started_at',
         'import_completed_at',
     ];
@@ -27,6 +28,7 @@ final class Competition extends Model
         return [
             'last_synced_at' => 'datetime',
             'pending_player_imports' => 'integer',
+            'failed_player_imports' => 'integer',
             'import_started_at' => 'datetime',
             'import_completed_at' => 'datetime',
         ];

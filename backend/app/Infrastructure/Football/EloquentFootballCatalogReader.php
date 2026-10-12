@@ -16,6 +16,7 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
     public function competitions(): array
     {
         return Competition::query()
+            ->withCount('teams')
             ->orderBy('name')
             ->get()
             ->map(fn (Competition $competition): CompetitionData => $this->competitionData($competition))
@@ -26,6 +27,7 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
     {
         $competition = Competition::query()
             ->where('external_id', $externalId)
+            ->withCount('teams')
             ->first();
 
         return $competition === null ? null : $this->competitionData($competition);
@@ -68,6 +70,9 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
             CompetitionImportStatus::tryFrom($competition->import_status),
             $competition->import_error,
             $competition->last_synced_at?->toIso8601String(),
+            $competition->pending_player_imports,
+            $competition->teams_count,
+            $competition->failed_player_imports,
         );
     }
 

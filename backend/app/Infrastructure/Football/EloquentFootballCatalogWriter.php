@@ -69,6 +69,7 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
             ->update([
                 'import_status' => CompetitionImportStatus::Processing->value,
                 'import_error' => null,
+                'failed_player_imports' => 0,
                 'import_started_at' => now(),
                 'import_completed_at' => null,
             ]);
@@ -80,6 +81,7 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
             ->where('external_id', $competitionId)
             ->update([
                 'pending_player_imports' => $pendingImports,
+                'failed_player_imports' => 0,
                 'import_status' => $pendingImports === 0
                     ? CompetitionImportStatus::Completed->value
                     : CompetitionImportStatus::Processing->value,
@@ -103,7 +105,34 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
             $competition->update([
                 'pending_player_imports' => $pendingImports,
                 'import_status' => $pendingImports === 0
-                    ? CompetitionImportStatus::Completed->value
+                    ? $this->finalImportStatus($competition->failed_player_imports)
+                    : CompetitionImportStatus::Processing->value,
+                'import_completed_at' => $pendingImports === 0 ? now() : null,
+            ]);
+        });
+    }
+
+    public function markPlayerImportFailed(int $competitionId, string $message): void
+    {
+        DB::transaction(function () use ($competitionId, $message): void {
+            $competition = Competition::query()
+                ->where('external_id', $competitionId)
+                ->lockForUpdate()
+                ->first();
+
+            if ($competition === null || $competition->pending_player_imports === 0) {
+                return;
+            }
+
+            $pendingImports = $competition->pending_player_imports - 1;
+            $failedImports = $competition->failed_player_imports + 1;
+
+            $competition->update([
+                'pending_player_imports' => $pendingImports,
+                'failed_player_imports' => $failedImports,
+                'import_error' => $message,
+                'import_status' => $pendingImports === 0
+                    ? CompetitionImportStatus::Failed->value
                     : CompetitionImportStatus::Processing->value,
                 'import_completed_at' => $pendingImports === 0 ? now() : null,
             ]);
@@ -119,6 +148,13 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
                 'import_error' => $message,
                 'import_completed_at' => now(),
             ]);
+    }
+
+    private function finalImportStatus(int $failedImports): string
+    {
+        return $failedImports === 0
+            ? CompetitionImportStatus::Completed->value
+            : CompetitionImportStatus::Failed->value;
     }
 
     private function saveTeam(TeamData $team): Team

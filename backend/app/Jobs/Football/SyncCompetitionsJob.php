@@ -4,6 +4,7 @@ namespace App\Jobs\Football;
 
 use App\Application\Football\Contracts\FootballCatalogWriter;
 use App\Application\Football\Contracts\FootballDataProvider;
+use App\Jobs\Football\Concerns\RespectsFootballDataRetryWindow;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,8 +17,7 @@ use Throwable;
 final class SyncCompetitionsJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    public int $tries = 3;
+    use RespectsFootballDataRetryWindow;
 
     public array $backoff = [60, 120, 300];
 
