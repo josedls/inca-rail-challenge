@@ -29,11 +29,15 @@ final class UpdateRoleRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('roles', 'name')
-                    ->where('guard_name', 'api')
+                    ->where('guard_name', config('auth.defaults.guard'))
                     ->ignore($this->integer('role_id')),
             ],
             'permissions' => ['required', 'array'],
-            'permissions.*' => ['string', 'distinct', Rule::exists('permissions', 'name')->where('guard_name', 'api')],
+            'permissions.*' => [
+                'string',
+                'distinct',
+                Rule::exists('permissions', 'name')->where('guard_name', config('auth.defaults.guard')),
+            ],
         ];
     }
 }

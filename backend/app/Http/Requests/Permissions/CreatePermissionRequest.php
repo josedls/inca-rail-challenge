@@ -19,7 +19,7 @@ final class CreatePermissionRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('permissions', 'name')->where('guard_name', 'api'),
+                Rule::unique('permissions', 'name')->where('guard_name', config('auth.defaults.guard')),
             ],
         ];
     }

@@ -14,7 +14,7 @@ final class CompetitionResource extends JsonResource
             'name' => $this->resource->name,
             'code' => $this->resource->code,
             'emblem' => $this->resource->emblem,
-            'import_status' => $this->resource->importStatus,
+            'import_status' => $this->resource->importStatus?->value,
             'import_error' => $this->resource->importError,
             'last_synced_at' => $this->resource->lastSyncedAt,
         ];

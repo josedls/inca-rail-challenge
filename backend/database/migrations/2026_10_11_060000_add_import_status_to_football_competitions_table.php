@@ -1,5 +1,6 @@
 <?php
 
+use App\Domain\Football\CompetitionImportStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,7 +10,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('football_competitions', function (Blueprint $table): void {
-            $table->string('import_status')->default('available')->after('last_synced_at');
+            $table->string('import_status')
+                ->default(CompetitionImportStatus::Available->value)
+                ->after('last_synced_at');
             $table->text('import_error')->nullable()->after('import_status');
             $table->unsignedInteger('pending_player_imports')->default(0)->after('import_error');
             $table->timestamp('import_started_at')->nullable()->after('pending_player_imports');

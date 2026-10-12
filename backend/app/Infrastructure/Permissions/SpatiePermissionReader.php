@@ -11,7 +11,7 @@ final class SpatiePermissionReader implements PermissionReader
     public function all(): array
     {
         return Permission::query()
-            ->where('guard_name', 'api')
+            ->where('guard_name', config('auth.defaults.guard'))
             ->orderBy('name')
             ->get()
             ->map(fn (Permission $permission): PermissionSummary => $this->toSummary($permission))

@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Infrastructure\Auth;
 
+use App\Infrastructure\Auth\AuthGuard;
 use App\Infrastructure\Auth\PassportTokenRevoker;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Factory;
@@ -26,7 +27,7 @@ final class PassportTokenRevokerTest extends TestCase
         $auth = $this->createMock(Factory::class);
         $auth->expects($this->once())->method('guard')->with('api')->willReturn($guard);
 
-        (new PassportTokenRevoker($auth))->revoke();
+        (new PassportTokenRevoker($auth, new AuthGuard('api')))->revoke();
     }
 
     public function test_it_rejects_missing_access_token(): void
@@ -43,6 +44,6 @@ final class PassportTokenRevokerTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('No revocable Passport access token was found.');
 
-        (new PassportTokenRevoker($auth))->revoke();
+        (new PassportTokenRevoker($auth, new AuthGuard('api')))->revoke();
     }
 }

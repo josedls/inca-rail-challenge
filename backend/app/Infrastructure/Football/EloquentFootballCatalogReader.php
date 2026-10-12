@@ -6,6 +6,7 @@ use App\Application\Football\Contracts\FootballCatalogReader;
 use App\Application\Football\Data\CompetitionData;
 use App\Application\Football\Data\PlayerData;
 use App\Application\Football\Data\TeamData;
+use App\Domain\Football\CompetitionImportStatus;
 use App\Models\Football\Competition;
 use App\Models\Football\Player;
 use App\Models\Football\Team;
@@ -64,7 +65,7 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
             $competition->name,
             $competition->code,
             $competition->emblem,
-            $competition->import_status,
+            CompetitionImportStatus::tryFrom($competition->import_status),
             $competition->import_error,
             $competition->last_synced_at?->toIso8601String(),
         );

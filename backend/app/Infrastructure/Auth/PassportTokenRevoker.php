@@ -12,11 +12,12 @@ final class PassportTokenRevoker implements TokenRevoker
 {
     public function __construct(
         private readonly Factory $auth,
+        private readonly AuthGuard $authGuard,
     ) {}
 
     public function revoke(): void
     {
-        $user = $this->auth->guard('api')->user();
+        $user = $this->auth->guard($this->authGuard->name)->user();
 
         if (! $user instanceof OAuthenticatable) {
             throw new LogicException('No authenticated Passport user was found.');

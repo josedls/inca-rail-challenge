@@ -13,7 +13,7 @@ final class SpatieRoleCreator implements RoleCreator
     {
         $role = Role::create([
             'name' => $data->name,
-            'guard_name' => 'api',
+            'guard_name' => config('auth.defaults.guard'),
         ]);
         $role->syncPermissions($data->permissions);
         $role->load('permissions:id,name');

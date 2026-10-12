@@ -19,10 +19,14 @@ final class CreateRoleRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('roles', 'name')->where('guard_name', 'api'),
+                Rule::unique('roles', 'name')->where('guard_name', config('auth.defaults.guard')),
             ],
             'permissions' => ['sometimes', 'array'],
-            'permissions.*' => ['string', 'distinct', Rule::exists('permissions', 'name')->where('guard_name', 'api')],
+            'permissions.*' => [
+                'string',
+                'distinct',
+                Rule::exists('permissions', 'name')->where('guard_name', config('auth.defaults.guard')),
+            ],
         ];
     }
 }

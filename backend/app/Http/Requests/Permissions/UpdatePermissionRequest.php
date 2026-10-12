@@ -29,7 +29,7 @@ final class UpdatePermissionRequest extends FormRequest
                 'string',
                 'max:255',
                 Rule::unique('permissions', 'name')
-                    ->where('guard_name', 'api')
+                    ->where('guard_name', config('auth.defaults.guard'))
                     ->ignore($this->integer('permission_id')),
             ],
         ];

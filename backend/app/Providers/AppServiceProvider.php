@@ -7,6 +7,8 @@ use App\Application\Auth\Contracts\PasswordVerifier;
 use App\Application\Auth\Contracts\TokenIssuer;
 use App\Application\Auth\Contracts\TokenRevoker;
 use App\Application\Auth\Contracts\UserFinder;
+use App\Application\Football\Contracts\CompetitionImportDispatcher;
+use App\Application\Football\Contracts\CompetitionSyncDispatcher;
 use App\Application\Football\Contracts\FootballCatalogReader;
 use App\Application\Football\Contracts\FootballCatalogWriter;
 use App\Application\Football\Contracts\FootballDataProvider;
@@ -22,6 +24,7 @@ use App\Application\Users\Contracts\UserCreator;
 use App\Application\Users\Contracts\UserReader;
 use App\Application\Users\Contracts\UserStatusChanger;
 use App\Application\Users\Contracts\UserUpdater;
+use App\Infrastructure\Auth\AuthGuard;
 use App\Infrastructure\Auth\EloquentCurrentUserReader;
 use App\Infrastructure\Auth\EloquentUserFinder;
 use App\Infrastructure\Auth\LaravelPasswordVerifier;
@@ -31,6 +34,8 @@ use App\Infrastructure\Auth\UserAccountMapper;
 use App\Infrastructure\Football\EloquentFootballCatalogReader;
 use App\Infrastructure\Football\EloquentFootballCatalogWriter;
 use App\Infrastructure\Football\FootballDataClient;
+use App\Infrastructure\Football\QueueCompetitionImport;
+use App\Infrastructure\Football\QueueCompetitionSync;
 use App\Infrastructure\Permissions\SpatiePermissionCreator;
 use App\Infrastructure\Permissions\SpatiePermissionDeleter;
 use App\Infrastructure\Permissions\SpatiePermissionReader;
@@ -55,6 +60,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(
+            AuthGuard::class,
+            fn (): AuthGuard => new AuthGuard(config('auth.defaults.guard')),
+        );
         $this->app->bind(UserFinder::class, EloquentUserFinder::class);
         $this->app->bind(CurrentUserReader::class, EloquentCurrentUserReader::class);
         $this->app->singleton(UserAccountMapper::class);
@@ -74,6 +83,8 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->bind(FootballCatalogReader::class, EloquentFootballCatalogReader::class);
         $this->app->bind(FootballCatalogWriter::class, EloquentFootballCatalogWriter::class);
+        $this->app->bind(CompetitionImportDispatcher::class, QueueCompetitionImport::class);
+        $this->app->bind(CompetitionSyncDispatcher::class, QueueCompetitionSync::class);
         $this->app->bind(UserReader::class, EloquentUserReader::class);
         $this->app->bind(UserCreator::class, EloquentUserCreator::class);
         $this->app->bind(UserUpdater::class, EloquentUserUpdater::class);

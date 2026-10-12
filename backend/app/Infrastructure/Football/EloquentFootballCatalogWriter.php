@@ -6,6 +6,7 @@ use App\Application\Football\Contracts\FootballCatalogWriter;
 use App\Application\Football\Data\CompetitionData;
 use App\Application\Football\Data\PlayerData;
 use App\Application\Football\Data\TeamData;
+use App\Domain\Football\CompetitionImportStatus;
 use App\Models\Football\Competition;
 use App\Models\Football\Player;
 use App\Models\Football\Team;
@@ -66,7 +67,7 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
         Competition::query()
             ->where('external_id', $competitionId)
             ->update([
-                'import_status' => 'processing',
+                'import_status' => CompetitionImportStatus::Processing->value,
                 'import_error' => null,
                 'import_started_at' => now(),
                 'import_completed_at' => null,
@@ -79,7 +80,9 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
             ->where('external_id', $competitionId)
             ->update([
                 'pending_player_imports' => $pendingImports,
-                'import_status' => $pendingImports === 0 ? 'completed' : 'processing',
+                'import_status' => $pendingImports === 0
+                    ? CompetitionImportStatus::Completed->value
+                    : CompetitionImportStatus::Processing->value,
                 'import_completed_at' => $pendingImports === 0 ? now() : null,
             ]);
     }
@@ -99,7 +102,9 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
             $pendingImports = $competition->pending_player_imports - 1;
             $competition->update([
                 'pending_player_imports' => $pendingImports,
-                'import_status' => $pendingImports === 0 ? 'completed' : 'processing',
+                'import_status' => $pendingImports === 0
+                    ? CompetitionImportStatus::Completed->value
+                    : CompetitionImportStatus::Processing->value,
                 'import_completed_at' => $pendingImports === 0 ? now() : null,
             ]);
         });
@@ -110,7 +115,7 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
         Competition::query()
             ->where('external_id', $competitionId)
             ->update([
-                'import_status' => 'failed',
+                'import_status' => CompetitionImportStatus::Failed->value,
                 'import_error' => $message,
                 'import_completed_at' => now(),
             ]);

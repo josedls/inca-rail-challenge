@@ -7,23 +7,28 @@ use App\Application\Football\GetSavedTeam;
 use App\Application\Football\ListSavedCompetitions;
 use App\Application\Football\ListSavedPlayers;
 use App\Application\Football\ListSavedTeams;
+use App\Application\Football\RequestCompetitionImport;
+use App\Application\Football\RequestCompetitionSync;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Football\CompetitionResource;
 use App\Http\Resources\Football\PlayerResource;
 use App\Http\Resources\Football\TeamResource;
-use App\Jobs\Football\ImportCompetitionJob;
-use App\Jobs\Football\SyncCompetitionsJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 final class FootballController extends Controller
 {
+    public function __construct(
+        private readonly RequestCompetitionImport $requestCompetitionImport,
+        private readonly RequestCompetitionSync $requestCompetitionSync,
+    ) {}
+
     public function competitions(ListSavedCompetitions $listCompetitions): AnonymousResourceCollection|JsonResponse
     {
         $competitions = $listCompetitions->handle();
 
         if ($competitions === []) {
-            SyncCompetitionsJob::dispatch();
+            $this->requestCompetitionSync->handle();
 
             return response()->json([
                 'data' => [
@@ -48,32 +53,12 @@ final class FootballController extends Controller
 
     public function importCompetition(
         int $competition,
-        GetSavedCompetition $getSavedCompetition,
     ): JsonResponse {
-        $savedCompetition = $getSavedCompetition->handle($competition);
-        $status = $savedCompetition?->importStatus;
+        $result = $this->requestCompetitionImport->handle($competition);
 
-        if ($status === 'processing') {
-            return $this->importStatusResponse($competition, 'processing');
-        }
-
-        if ($status === 'completed') {
-            return $this->importStatusResponse($competition, 'completed', 200);
-        }
-
-        ImportCompetitionJob::dispatch($competition);
-
-        return $this->importStatusResponse($competition, 'queued');
-    }
-
-    private function importStatusResponse(int $competition, string $status, int $responseStatus = 202): JsonResponse
-    {
         return response()->json([
-            'data' => [
-                'competition_id' => $competition,
-                'status' => $status,
-            ],
-        ], $responseStatus);
+            'data' => $result->toArray(),
+        ], $result->httpStatus);
     }
 
     public function teams(ListSavedTeams $listSavedTeams): AnonymousResourceCollection

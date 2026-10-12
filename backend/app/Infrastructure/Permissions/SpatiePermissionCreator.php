@@ -13,7 +13,7 @@ final class SpatiePermissionCreator implements PermissionCreator
     {
         $permission = Permission::create([
             'name' => $data->name,
-            'guard_name' => 'api',
+            'guard_name' => config('auth.defaults.guard'),
         ]);
 
         return new PermissionSummary(

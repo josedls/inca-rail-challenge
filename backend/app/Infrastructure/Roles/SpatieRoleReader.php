@@ -11,7 +11,7 @@ final class SpatieRoleReader implements RoleReader
     public function all(): array
     {
         return Role::query()
-            ->where('guard_name', 'api')
+            ->where('guard_name', config('auth.defaults.guard'))
             ->with('permissions:id,name')
             ->orderBy('name')
             ->get()
