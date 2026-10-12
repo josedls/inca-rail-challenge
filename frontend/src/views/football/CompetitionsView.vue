@@ -120,6 +120,22 @@ function isTerminalStatus(status: Competition['import_status']): boolean {
   return status === 'completed' || status === 'failed'
 }
 
+function importActionLabel(status: Competition['import_status']): string {
+  if (status === 'completed') return 'Actualizar datos'
+  if (status === 'failed') return 'Reintentar importación'
+
+  return 'Importar liga'
+}
+
+function formatLastSyncedAt(value: string | null): string {
+  if (!value) return ''
+
+  return new Intl.DateTimeFormat('es-PE', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value))
+}
+
 function getFootballErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 403) {
@@ -172,7 +188,11 @@ function getFootballErrorMessage(error: unknown): string {
 
     <v-row v-else>
       <v-col v-for="competition in competitions" :key="competition.id" cols="12" sm="6" lg="4">
-        <v-card class="h-100 d-flex flex-column">
+        <v-card
+          class="h-100 d-flex flex-column"
+          :to="{ name: 'competition-detail', params: { competition: competition.id } }"
+          link
+        >
           <v-card-item>
             <template #prepend>
               <v-avatar color="primary" rounded="lg">
@@ -204,11 +224,15 @@ function getFootballErrorMessage(error: unknown): string {
               variant="text"
               :loading="importingCompetitions[competition.id]"
               :disabled="competition.import_status === 'processing'"
-              @click="requestImport(competition)"
+              @click.prevent="requestImport(competition)"
             >
-              Importar liga
+              {{ importActionLabel(competition.import_status) }}
             </v-btn>
           </v-card-actions>
+
+          <small v-if="competition.last_synced_at" class="d-block px-4 pb-3 text-medium-emphasis">
+            Última actualización: {{ formatLastSyncedAt(competition.last_synced_at) }}
+          </small>
 
           <div
             v-if="competition.import_status === 'processing' && competition.import_progress.total > 0"

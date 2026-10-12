@@ -17,6 +17,22 @@ vi.mock('../../views/football/CompetitionsView.vue', () => ({
   default: { template: '<div />' },
 }))
 
+vi.mock('../../views/football/CompetitionDetailView.vue', () => ({
+  default: { template: '<div />' },
+}))
+
+vi.mock('../../views/football/TeamsView.vue', () => ({
+  default: { template: '<div />' },
+}))
+
+vi.mock('../../views/football/TeamDetailView.vue', () => ({
+  default: { template: '<div />' },
+}))
+
+vi.mock('../../views/football/PlayersView.vue', () => ({
+  default: { template: '<div />' },
+}))
+
 import { router } from './index'
 
 describe('application router', () => {

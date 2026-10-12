@@ -5,10 +5,15 @@ import { router } from './app/router'
 import { useAuthStore } from './app/stores/auth'
 import { getCurrentUser } from './services/authApi'
 import 'vuetify/styles'
+import '@mdi/font/css/materialdesignicons.css'
 import './style.css'
 import App from './App.vue'
 
-const vuetify = createVuetify()
+const vuetify = createVuetify({
+  icons: {
+    defaultSet: 'mdi',
+  },
+})
 const pinia = createPinia()
 const app = createApp(App)
 
