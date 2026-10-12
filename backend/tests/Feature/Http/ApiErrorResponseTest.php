@@ -22,6 +22,16 @@ final class ApiErrorResponseTest extends TestCase
             ]);
     }
 
+    public function test_it_returns_a_consistent_401_response_for_an_invalid_access_token(): void
+    {
+        $this->withToken('invalid-token')
+            ->getJson('/me')
+            ->assertUnauthorized()
+            ->assertJson([
+                'message' => 'Invalid or expired access token.',
+            ]);
+    }
+
     public function test_it_returns_a_consistent_403_response(): void
     {
         $user = User::factory()->create();

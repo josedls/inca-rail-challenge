@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Validation\ValidationException;
+use League\OAuth2\Server\Exception\OAuthServerException;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -36,7 +37,16 @@ final class ApiExceptionRenderer
 
         if ($exception instanceof AuthenticationException) {
             return $this->error(
-                $exception->getMessage() ?: 'Unauthenticated.',
+                $request->hasHeader('Authorization')
+                    ? 'Invalid or expired access token.'
+                    : ($exception->getMessage() ?: 'Unauthenticated.'),
+                Response::HTTP_UNAUTHORIZED,
+            );
+        }
+
+        if ($exception instanceof OAuthServerException) {
+            return $this->error(
+                'Invalid or expired access token.',
                 Response::HTTP_UNAUTHORIZED,
             );
         }
