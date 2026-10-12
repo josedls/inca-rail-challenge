@@ -105,6 +105,32 @@ final class FootballDataClientTest extends TestCase
         });
     }
 
+    public function test_it_treats_a_team_without_a_squad_as_an_empty_squad(): void
+    {
+        Http::fake([
+            'https://api.football-data.test/v4/teams/765' => Http::response([
+                'id' => 765,
+                'name' => 'Team without squad',
+            ]),
+        ]);
+
+        self::assertSame([], $this->client()->players(765));
+    }
+
+    public function test_it_rejects_a_squad_with_an_invalid_shape(): void
+    {
+        Http::fake([
+            'https://api.football-data.test/v4/teams/765' => Http::response([
+                'squad' => 'not-an-array',
+            ]),
+        ]);
+
+        $this->expectException(FootballDataApiException::class);
+        $this->expectExceptionMessage('Football data service returned an invalid response.');
+
+        $this->client()->players(765);
+    }
+
     public function test_it_maps_rate_limit_errors(): void
     {
         Http::fake([
@@ -138,6 +164,38 @@ final class FootballDataClientTest extends TestCase
             self::assertSame(503, $exception->statusCode);
 
             throw $exception;
+        }
+    }
+
+    public function test_it_marks_missing_team_data_as_non_retryable(): void
+    {
+        Http::fake([
+            'https://api.football-data.test/v4/teams/765' => Http::response([], 404),
+        ]);
+
+        try {
+            $this->client()->players(765);
+            self::fail('An exception was expected.');
+        } catch (FootballDataApiException $exception) {
+            self::assertFalse($exception->retryable);
+            self::assertSame('/teams/765', $exception->endpoint);
+            self::assertSame(404, $exception->upstreamStatusCode);
+        }
+    }
+
+    public function test_it_marks_service_failures_as_retryable(): void
+    {
+        Http::fake([
+            'https://api.football-data.test/v4/teams/765' => Http::response([], 503),
+        ]);
+
+        try {
+            $this->client()->players(765);
+            self::fail('An exception was expected.');
+        } catch (FootballDataApiException $exception) {
+            self::assertTrue($exception->retryable);
+            self::assertSame('/teams/765', $exception->endpoint);
+            self::assertSame(503, $exception->upstreamStatusCode);
         }
     }
 

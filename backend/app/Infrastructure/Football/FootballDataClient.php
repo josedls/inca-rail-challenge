@@ -51,9 +51,9 @@ final class FootballDataClient implements FootballDataProvider
 
     public function players(int $teamId): array
     {
-        $items = $this->itemsFrom(
+        $items = $this->optionalItemsFrom(
             $this->get("/teams/{$teamId}"),
-            'squad'
+            'squad',
         );
 
         return $this->mapPlayers($items);
@@ -69,6 +69,9 @@ final class FootballDataClient implements FootballDataProvider
             throw new FootballDataApiException(
                 self::SERVICE_UNAVAILABLE_MESSAGE,
                 Response::HTTP_SERVICE_UNAVAILABLE,
+                true,
+                $uri,
+                null,
                 $exception,
             );
         }
@@ -77,6 +80,9 @@ final class FootballDataClient implements FootballDataProvider
             throw new FootballDataApiException(
                 'Football data rate limit exceeded.',
                 Response::HTTP_TOO_MANY_REQUESTS,
+                true,
+                $uri,
+                $response->status(),
             );
         }
 
@@ -84,11 +90,14 @@ final class FootballDataClient implements FootballDataProvider
             throw new FootballDataApiException(
                 self::SERVICE_UNAVAILABLE_MESSAGE,
                 Response::HTTP_SERVICE_UNAVAILABLE,
+                true,
+                $uri,
+                $response->status(),
             );
         }
 
         if ($response->failed()) {
-            throw $this->invalidResponse();
+            throw $this->invalidResponse($uri, $response->status());
         }
 
         return $this->payloadFrom($response->json());
@@ -103,6 +112,7 @@ final class FootballDataClient implements FootballDataProvider
         throw new FootballDataApiException(
             self::NOT_CONFIGURED_MESSAGE,
             Response::HTTP_SERVICE_UNAVAILABLE,
+            false,
         );
     }
 
@@ -115,6 +125,19 @@ final class FootballDataClient implements FootballDataProvider
         }
 
         return $items;
+    }
+
+    private function optionalItemsFrom(array $payload, string $key): array
+    {
+        if (! array_key_exists($key, $payload)) {
+            return [];
+        }
+
+        if (! is_array($payload[$key])) {
+            throw $this->invalidResponse();
+        }
+
+        return $payload[$key];
     }
 
     private function mapCompetitions(array $items): array
@@ -203,11 +226,14 @@ final class FootballDataClient implements FootballDataProvider
         return $payload;
     }
 
-    private function invalidResponse(): FootballDataApiException
+    private function invalidResponse(?string $endpoint = null, ?int $upstreamStatusCode = null): FootballDataApiException
     {
         return new FootballDataApiException(
             self::INVALID_RESPONSE_MESSAGE,
             Response::HTTP_BAD_GATEWAY,
+            false,
+            $endpoint,
+            $upstreamStatusCode,
         );
     }
 
@@ -216,6 +242,7 @@ final class FootballDataClient implements FootballDataProvider
         return new FootballDataApiException(
             "Football data service returned an invalid {$resource}.",
             Response::HTTP_BAD_GATEWAY,
+            false,
         );
     }
 }

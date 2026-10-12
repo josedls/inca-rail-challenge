@@ -4,6 +4,7 @@ namespace Tests\Unit\Application\Football;
 
 use App\Application\Football\Contracts\CompetitionImportDispatcher;
 use App\Application\Football\Contracts\FootballCatalogReader;
+use App\Application\Football\Contracts\FootballCatalogWriter;
 use App\Application\Football\Data\CompetitionData;
 use App\Application\Football\GetSavedCompetition;
 use App\Application\Football\RequestCompetitionImport;
@@ -20,13 +21,18 @@ final class RequestCompetitionImportTest extends TestCase
             ->method('dispatch')
             ->with(2021);
 
+        $writer = $this->writerMock();
+        $writer->expects(self::once())
+            ->method('markCompetitionProcessing')
+            ->with(2021);
+
         $reader = $this->readerMock();
         $reader->expects(self::once())
             ->method('competition')
             ->with(2021)
             ->willReturn(null);
 
-        $result = $this->service($reader, $dispatcher)->handle(2021);
+        $result = $this->service($reader, $writer, $dispatcher)->handle(2021);
 
         self::assertSame(2021, $result->competitionId);
         self::assertSame('queued', $result->status);
@@ -43,7 +49,7 @@ final class RequestCompetitionImportTest extends TestCase
             new CompetitionData(2021, 'Premier League', 'PL', null, CompetitionImportStatus::Processing),
         );
 
-        $result = $this->service($reader, $dispatcher)->handle(2021);
+        $result = $this->service($reader, $this->writerMock(), $dispatcher)->handle(2021);
 
         self::assertSame('processing', $result->status);
         self::assertSame(202, $result->httpStatus);
@@ -59,7 +65,7 @@ final class RequestCompetitionImportTest extends TestCase
             new CompetitionData(2021, 'Premier League', 'PL', null, CompetitionImportStatus::Completed),
         );
 
-        $result = $this->service($reader, $dispatcher)->handle(2021);
+        $result = $this->service($reader, $this->writerMock(), $dispatcher)->handle(2021);
 
         self::assertSame('completed', $result->status);
         self::assertSame(200, $result->httpStatus);
@@ -67,10 +73,12 @@ final class RequestCompetitionImportTest extends TestCase
 
     private function service(
         MockObject&FootballCatalogReader $reader,
+        MockObject&FootballCatalogWriter $writer,
         MockObject&CompetitionImportDispatcher $dispatcher,
     ): RequestCompetitionImport {
         return new RequestCompetitionImport(
             new GetSavedCompetition($reader),
+            $writer,
             $dispatcher,
         );
     }
@@ -83,5 +91,10 @@ final class RequestCompetitionImportTest extends TestCase
     private function dispatcherMock(): MockObject&CompetitionImportDispatcher
     {
         return $this->createMock(CompetitionImportDispatcher::class);
+    }
+
+    private function writerMock(): MockObject&FootballCatalogWriter
+    {
+        return $this->createMock(FootballCatalogWriter::class);
     }
 }

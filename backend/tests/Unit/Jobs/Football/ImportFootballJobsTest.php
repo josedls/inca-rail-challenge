@@ -7,6 +7,7 @@ use App\Application\Football\Contracts\FootballDataProvider;
 use App\Application\Football\Data\CompetitionData;
 use App\Application\Football\Data\PlayerData;
 use App\Application\Football\Data\TeamData;
+use App\Domain\Football\FootballDataApiException;
 use App\Jobs\Football\ImportCompetitionJob;
 use App\Jobs\Football\ImportCompetitionTeamsJob;
 use App\Jobs\Football\ImportTeamPlayersJob;
@@ -79,6 +80,29 @@ final class ImportFootballJobsTest extends TestCase
         (new ImportTeamPlayersJob(2021, 64))->handle($provider, $writer);
 
         self::assertInstanceOf(RateLimited::class, (new ImportTeamPlayersJob(2021, 64))->middleware()[0]);
+    }
+
+    public function test_player_job_marks_non_retryable_provider_errors_as_partial_failures(): void
+    {
+        $provider = $this->providerMock();
+        $writer = $this->writerMock();
+        $exception = new FootballDataApiException(
+            'Team data is not available.',
+            502,
+            false,
+            '/teams/64',
+            404,
+        );
+
+        $provider->expects(self::once())
+            ->method('players')
+            ->with(64)
+            ->willThrowException($exception);
+        $writer->expects(self::once())
+            ->method('markPlayerImportFailed')
+            ->with(2021, 'Team data is not available.');
+
+        (new ImportTeamPlayersJob(2021, 64))->handle($provider, $writer);
     }
 
     public function test_competition_sync_saves_the_available_competitions(): void

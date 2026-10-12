@@ -4,6 +4,7 @@ namespace App\Jobs\Football;
 
 use App\Application\Football\Contracts\FootballCatalogWriter;
 use App\Application\Football\Contracts\FootballDataProvider;
+use App\Domain\Football\FootballDataApiException;
 use App\Jobs\Football\Concerns\RespectsFootballDataRetryWindow;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -44,9 +45,20 @@ final class ImportTeamPlayersJob implements ShouldBeUnique, ShouldQueue
         FootballDataProvider $footballDataProvider,
         FootballCatalogWriter $catalogWriter,
     ): void {
-        $players = $footballDataProvider->players($this->teamId);
-        $catalogWriter->savePlayers($this->teamId, $players);
-        $catalogWriter->markPlayerImportCompleted($this->competitionId);
+        try {
+            $players = $footballDataProvider->players($this->teamId);
+            $catalogWriter->savePlayers($this->teamId, $players);
+            $catalogWriter->markPlayerImportCompleted($this->competitionId);
+        } catch (FootballDataApiException $exception) {
+            if ($exception->retryable) {
+                throw $exception;
+            }
+
+            $catalogWriter->markPlayerImportFailed(
+                $this->competitionId,
+                $exception->getMessage(),
+            );
+        }
     }
 
     public function failed(?Throwable $exception): void
