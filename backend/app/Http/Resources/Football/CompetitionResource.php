@@ -9,7 +9,7 @@ final class CompetitionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->resource->id,
             'name' => $this->resource->name,
             'code' => $this->resource->code,
@@ -19,6 +19,12 @@ final class CompetitionResource extends JsonResource
             'last_synced_at' => $this->resource->lastSyncedAt,
             'import_progress' => $this->importProgress(),
         ];
+
+        if ($this->resource->teams !== null) {
+            $data['teams'] = TeamResource::collection($this->resource->teams);
+        }
+
+        return $data;
     }
 
     private function importProgress(): array

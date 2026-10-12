@@ -17,5 +17,6 @@ final readonly class CompetitionData
         public int $pendingPlayerImports = 0,
         public int $totalTeams = 0,
         public int $failedPlayerImports = 0,
+        public ?array $teams = null,
     ) {}
 }

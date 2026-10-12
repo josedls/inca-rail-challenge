@@ -9,11 +9,17 @@ final class TeamResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->resource->id,
             'name' => $this->resource->name,
             'short_name' => $this->resource->shortName,
             'crest' => $this->resource->crest,
         ];
+
+        if ($this->resource->players !== null) {
+            $data['players'] = PlayerResource::collection($this->resource->players);
+        }
+
+        return $data;
     }
 }

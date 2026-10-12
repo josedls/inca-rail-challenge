@@ -28,6 +28,7 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
         $competition = Competition::query()
             ->where('external_id', $externalId)
             ->withCount('teams')
+            ->with('teams')
             ->first();
 
         return $competition === null ? null : $this->competitionData($competition);
@@ -46,6 +47,7 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
     {
         $team = Team::query()
             ->where('external_id', $externalId)
+            ->with('players')
             ->first();
 
         return $team === null ? null : $this->teamData($team);
@@ -62,6 +64,14 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
 
     private function competitionData(Competition $competition): CompetitionData
     {
+        $teams = $competition->relationLoaded('teams')
+            ? $competition->teams
+                ->sortBy('name')
+                ->map(fn (Team $team): TeamData => $this->teamData($team))
+                ->values()
+                ->all()
+            : null;
+
         return new CompetitionData(
             $competition->external_id,
             $competition->name,
@@ -73,16 +83,26 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
             $competition->pending_player_imports,
             $competition->teams_count,
             $competition->failed_player_imports,
+            $teams,
         );
     }
 
     private function teamData(Team $team): TeamData
     {
+        $players = $team->relationLoaded('players')
+            ? $team->players
+                ->sortBy('name')
+                ->map(fn (Player $player): PlayerData => $this->playerData($player))
+                ->values()
+                ->all()
+            : null;
+
         return new TeamData(
             $team->external_id,
             $team->name,
             $team->short_name,
             $team->crest,
+            $players,
         );
     }
 

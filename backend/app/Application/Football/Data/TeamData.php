@@ -9,5 +9,6 @@ final readonly class TeamData
         public string $name,
         public ?string $shortName,
         public ?string $crest,
+        public ?array $players = null,
     ) {}
 }

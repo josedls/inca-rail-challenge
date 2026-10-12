@@ -93,21 +93,53 @@ final class FootballControllerTest extends TestCase
             ->assertJsonPath('data.0.date_of_birth', '1992-06-15');
     }
 
+    public function test_it_returns_a_saved_team_with_its_players(): void
+    {
+        $team = Team::query()->create([
+            'external_id' => 64,
+            'name' => 'Liverpool FC',
+            'short_name' => 'Liverpool',
+        ]);
+        $player = Player::query()->create([
+            'external_id' => 117,
+            'name' => 'Mohamed Salah',
+            'position' => 'Right Winger',
+            'shirt_number' => 11,
+        ]);
+        $team->players()->attach($player->id);
+        $token = $this->tokenWithPermission('team.view');
+
+        $this->withToken($token)
+            ->getJson('/team/64')
+            ->assertOk()
+            ->assertJsonPath('data.id', 64)
+            ->assertJsonPath('data.players.0.id', 117)
+            ->assertJsonPath('data.players.0.shirt_number', 11);
+    }
+
     public function test_it_returns_a_saved_competition(): void
     {
-        Competition::query()->create([
+        $competition = Competition::query()->create([
             'external_id' => 2021,
             'name' => 'Premier League',
             'code' => 'PL',
             'import_status' => 'completed',
         ]);
+        $team = Team::query()->create([
+            'external_id' => 64,
+            'name' => 'Liverpool FC',
+            'short_name' => 'Liverpool',
+        ]);
+        $competition->teams()->attach($team->id);
         $token = $this->tokenWithPermission('competitions.view');
 
         $this->withToken($token)
             ->getJson('/competitions/2021')
             ->assertOk()
             ->assertJsonPath('data.id', 2021)
-            ->assertJsonPath('data.import_status', 'completed');
+            ->assertJsonPath('data.import_status', 'completed')
+            ->assertJsonPath('data.teams.0.id', 64)
+            ->assertJsonPath('data.teams.0.name', 'Liverpool FC');
     }
 
     public function test_it_returns_not_found_for_an_unknown_saved_competition(): void
