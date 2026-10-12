@@ -130,6 +130,18 @@ final class FootballControllerTest extends TestCase
             ->assertJsonPath('data.players.0.shirt_number', 11);
     }
 
+    public function test_it_returns_not_found_for_an_unknown_team(): void
+    {
+        $token = $this->tokenWithPermission('team.view');
+
+        $this->withToken($token)
+            ->getJson('/team/999999')
+            ->assertNotFound()
+            ->assertJson([
+                'message' => 'Resource not found.',
+            ]);
+    }
+
     public function test_it_returns_a_saved_competition(): void
     {
         $competition = Competition::query()->create([
