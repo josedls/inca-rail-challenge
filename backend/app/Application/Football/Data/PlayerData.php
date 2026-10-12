@@ -8,6 +8,7 @@ final readonly class PlayerData
         public int $id,
         public string $name,
         public ?string $position,
+        public ?int $shirtNumber,
         public ?string $dateOfBirth,
         public ?string $nationality,
     ) {}

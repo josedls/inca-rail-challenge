@@ -13,6 +13,7 @@ final class PlayerResource extends JsonResource
             'id' => $this->resource->id,
             'name' => $this->resource->name,
             'position' => $this->resource->position,
+            'shirt_number' => $this->resource->shirtNumber,
             'date_of_birth' => $this->resource->dateOfBirth,
             'nationality' => $this->resource->nationality,
         ];

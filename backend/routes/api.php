@@ -16,9 +16,13 @@ Route::middleware(['auth:api', EnsureUserIsActive::class])->group(function (): v
 
     Route::get('/competitions', [FootballController::class, 'competitions'])
         ->middleware('permission:competitions.view');
-    Route::get('/competitions/{competition}/teams', [FootballController::class, 'teams'])
+    Route::get('/competitions/{competition}', [FootballController::class, 'competition'])
+        ->middleware('permission:competitions.view');
+    Route::get('/team', [FootballController::class, 'teams'])
         ->middleware('permission:team.view');
-    Route::get('/teams/{team}/players', [FootballController::class, 'players'])
+    Route::get('/team/{team}', [FootballController::class, 'team'])
+        ->middleware('permission:team.view');
+    Route::get('/players', [FootballController::class, 'players'])
         ->middleware('permission:players.view');
 
     Route::prefix('users')->group(function (): void {

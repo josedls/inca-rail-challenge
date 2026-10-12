@@ -7,6 +7,8 @@ use App\Application\Auth\Contracts\PasswordVerifier;
 use App\Application\Auth\Contracts\TokenIssuer;
 use App\Application\Auth\Contracts\TokenRevoker;
 use App\Application\Auth\Contracts\UserFinder;
+use App\Application\Football\Contracts\FootballCatalogReader;
+use App\Application\Football\Contracts\FootballCatalogWriter;
 use App\Application\Football\Contracts\FootballDataProvider;
 use App\Application\Permissions\Contracts\PermissionCreator;
 use App\Application\Permissions\Contracts\PermissionDeleter;
@@ -26,6 +28,8 @@ use App\Infrastructure\Auth\LaravelPasswordVerifier;
 use App\Infrastructure\Auth\PassportTokenIssuer;
 use App\Infrastructure\Auth\PassportTokenRevoker;
 use App\Infrastructure\Auth\UserAccountMapper;
+use App\Infrastructure\Football\EloquentFootballCatalogReader;
+use App\Infrastructure\Football\EloquentFootballCatalogWriter;
 use App\Infrastructure\Football\FootballDataClient;
 use App\Infrastructure\Permissions\SpatiePermissionCreator;
 use App\Infrastructure\Permissions\SpatiePermissionDeleter;
@@ -66,6 +70,8 @@ class AppServiceProvider extends ServiceProvider
                 config('services.football_data.token'),
             );
         });
+        $this->app->bind(FootballCatalogReader::class, EloquentFootballCatalogReader::class);
+        $this->app->bind(FootballCatalogWriter::class, EloquentFootballCatalogWriter::class);
         $this->app->bind(UserReader::class, EloquentUserReader::class);
         $this->app->bind(UserCreator::class, EloquentUserCreator::class);
         $this->app->bind(UserUpdater::class, EloquentUserUpdater::class);

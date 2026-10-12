@@ -34,6 +34,11 @@ final class FootballDataClient implements FootballDataProvider
         return $this->mapCompetitions($items);
     }
 
+    public function competition(int $competitionId): CompetitionData
+    {
+        return $this->mapCompetition($this->get("/competitions/{$competitionId}"));
+    }
+
     public function teams(int $competitionId): array
     {
         $items = $this->itemsFrom(
@@ -183,6 +188,7 @@ final class FootballDataClient implements FootballDataProvider
             (int) $player['id'],
             (string) $player['name'],
             isset($player['position']) ? (string) $player['position'] : null,
+            isset($player['shirtNumber']) ? (int) $player['shirtNumber'] : null,
             isset($player['dateOfBirth']) ? (string) $player['dateOfBirth'] : null,
             isset($player['nationality']) ? (string) $player['nationality'] : null,
         );

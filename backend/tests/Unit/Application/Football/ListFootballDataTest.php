@@ -44,7 +44,7 @@ final class ListFootballDataTest extends TestCase
     public function test_it_lists_players_for_a_team(): void
     {
         $players = [
-            new PlayerData(117, 'Mohamed Salah', 'Right Winger', null, 'Egypt'),
+            new PlayerData(117, 'Mohamed Salah', 'Right Winger', 11, null, 'Egypt'),
         ];
         $provider = $this->providerMock();
         $provider->expects(self::once())
