@@ -177,6 +177,7 @@
         },
         {
           "name": "Create user",
+          "description": "Example payload for creating a user. Replace the password before sending.",
           "request": {
             "method": "POST",
             "header": [
@@ -185,7 +186,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Inca Rail Operations\",\n  \"email\": \"operations@inca-rail.test\",\n  \"password\": \"Operations!2026\",\n  \"password_confirmation\": \"Operations!2026\",\n  \"roles\": [\"viewer\"]\n}"
+              "raw": "{\n  \"name\": \"Inca Rail Operations\",\n  \"email\": \"operations@inca-rail.test\",\n  \"password\": \"ReplaceWithSecurePassword123!\",\n  \"password_confirmation\": \"ReplaceWithSecurePassword123!\",\n  \"roles\": [\"viewer\"]\n}"
             },
             "url": {
               "raw": "{{base_url}}/users",
@@ -384,6 +385,25 @@
       "item": [
         {
           "name": "List competitions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Competition list request accepted', function () {",
+                  "    pm.expect([200, 202]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 202) {",
+                  "    pm.test('Competition synchronization was queued', function () {",
+                  "        pm.expect(pm.response.json().data.status).to.eql('queued');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -405,9 +425,32 @@
           "response": []
         },
         {
-          "name": "List teams",
+          "name": "Import competition (async)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Competition import request completed', function () {",
+                  "    pm.expect([200, 202]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 202) {",
+                  "    pm.test('Competition import is queued or processing', function () {",
+                  "        pm.expect(['queued', 'processing']).to.include(pm.response.json().data.status);",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Competition import is already completed', function () {",
+                  "        pm.expect(pm.response.json().data.status).to.eql('completed');",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
                 "key": "Accept",
@@ -415,21 +458,35 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/competitions/{{competition_id}}/teams",
+              "raw": "{{base_url}}/competitions/{{competition_id}}/import",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
                 "competitions",
                 "{{competition_id}}",
-                "teams"
+                "import"
               ]
             }
           },
+          "description": "Starts the asynchronous import of a competition. After receiving 202, use Get saved competition to monitor the local import_status.",
           "response": []
         },
         {
-          "name": "List players",
+          "name": "Get saved competition",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Saved competition request completed', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -439,15 +496,63 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/teams/{{team_id}}/players",
+              "raw": "{{base_url}}/competitions/{{competition_id}}",
               "host": [
                 "{{base_url}}"
               ],
               "path": [
-                "teams",
-                "{{team_id}}",
-                "players"
+                "competitions",
+                "{{competition_id}}"
               ]
+            }
+          },
+          "description": "Returns the competition saved locally, including its import_status. The external API is not called.",
+          "response": []
+        },
+        {
+          "name": "List saved teams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/team",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "team"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get saved team",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {
+              "raw": "{{base_url}}/team/{{team_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["team", "{{team_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List saved players",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Accept", "value": "application/json"}],
+            "url": {
+              "raw": "{{base_url}}/players",
+              "host": ["{{base_url}}"],
+              "path": ["players"]
             }
           },
           "response": []
