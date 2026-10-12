@@ -4,6 +4,7 @@ import { ApiError } from '../../services/httpClient'
 import {
   importCompetition,
   listCompetitions,
+  syncCompetitions,
   type Competition,
 } from '../../services/footballApi'
 
@@ -13,6 +14,7 @@ const isSyncing = ref(false)
 const errorMessage = ref('')
 const importingCompetitions = ref<Record<number, boolean>>({})
 const pendingImports = ref<Record<number, boolean>>({})
+const initialSyncRequested = ref(false)
 const search = ref('')
 const page = ref(1)
 const itemsPerPage = ref(12)
@@ -49,16 +51,36 @@ async function loadCompetitions(): Promise<void> {
   try {
     const result = await listCompetitions()
     competitions.value = mergeCompetitionStatuses(result.items)
-    isSyncing.value = result.syncQueued
 
-    if (result.syncQueued || hasPendingImports()) {
+    if (result.items.length === 0) {
+      await requestInitialSync()
       scheduleRefresh()
+    } else if (hasPendingImports()) {
+      scheduleRefresh()
+    } else {
+      isSyncing.value = false
     }
   } catch (error) {
     isSyncing.value = false
     errorMessage.value = getFootballErrorMessage(error)
   } finally {
     isLoading.value = false
+  }
+}
+
+async function requestInitialSync(): Promise<void> {
+  isSyncing.value = true
+
+  if (initialSyncRequested.value) {
+    return
+  }
+
+  try {
+    await syncCompetitions()
+    initialSyncRequested.value = true
+  } catch (error) {
+    isSyncing.value = false
+    errorMessage.value = getFootballErrorMessage(error)
   }
 }
 
@@ -141,7 +163,7 @@ function isTerminalStatus(status: Competition['import_status']): boolean {
 }
 
 function importActionLabel(status: Competition['import_status']): string {
-  if (status === 'completed') return 'Actualizar datos'
+  if (status === 'processing') return 'Procesando'
   if (status === 'failed') return 'Reintentar importación'
 
   return 'Importar liga'
@@ -271,6 +293,7 @@ function getFootballErrorMessage(error: unknown): string {
             <v-spacer />
 
             <v-btn
+              v-if="competition.import_status !== 'completed'"
               color="primary"
               variant="text"
               :loading="importingCompetitions[competition.id]"

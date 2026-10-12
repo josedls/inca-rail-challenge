@@ -43,9 +43,7 @@ interface PlayerCollectionResponse {
   data: Player[]
 }
 
-interface CompetitionCollectionResponse {
-  data: Competition[] | { status: 'queued' }
-}
+interface CompetitionCollectionResponse { data: Competition[] }
 
 interface ImportCompetitionResponse {
   data: {
@@ -56,17 +54,16 @@ interface ImportCompetitionResponse {
 
 export interface CompetitionListResult {
   items: Competition[]
-  syncQueued: boolean
 }
 
 export async function listCompetitions(): Promise<CompetitionListResult> {
   const response = await request<CompetitionCollectionResponse>('/competitions')
 
-  if (!Array.isArray(response.data)) {
-    return { items: [], syncQueued: response.data.status === 'queued' }
-  }
+  return { items: response.data }
+}
 
-  return { items: response.data, syncQueued: false }
+export async function syncCompetitions(): Promise<void> {
+  await request('/competitions/sync', { method: 'POST' })
 }
 
 export async function getCompetition(competitionId: number): Promise<Competition> {

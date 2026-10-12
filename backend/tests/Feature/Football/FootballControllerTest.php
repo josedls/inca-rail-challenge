@@ -44,13 +44,26 @@ final class FootballControllerTest extends TestCase
             ->assertJsonPath('data.0.name', 'Premier League');
     }
 
-    public function test_it_queues_the_initial_competition_sync_when_catalog_is_empty(): void
+    public function test_it_returns_an_empty_competition_collection_without_side_effects(): void
     {
         Queue::fake();
         $token = $this->tokenWithPermission('competitions.view');
 
         $this->withToken($token)
             ->getJson('/competitions')
+            ->assertOk()
+            ->assertJsonPath('data', []);
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_it_queues_the_competition_catalog_sync_explicitly(): void
+    {
+        Queue::fake();
+        $token = $this->tokenWithPermission('competitions.view');
+
+        $this->withToken($token)
+            ->postJson('/competitions/sync')
             ->assertStatus(202)
             ->assertJsonPath('data.status', 'queued');
 

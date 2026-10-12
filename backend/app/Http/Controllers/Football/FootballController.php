@@ -25,19 +25,18 @@ final class FootballController extends Controller
 
     public function competitions(ListSavedCompetitions $listCompetitions): AnonymousResourceCollection|JsonResponse
     {
-        $competitions = $listCompetitions->handle();
+        return CompetitionResource::collection($listCompetitions->handle());
+    }
 
-        if ($competitions === []) {
-            $this->requestCompetitionSync->handle();
+    public function syncCompetitions(): JsonResponse
+    {
+        $this->requestCompetitionSync->handle();
 
-            return response()->json([
-                'data' => [
-                    'status' => 'queued',
-                ],
-            ], 202);
-        }
-
-        return CompetitionResource::collection($competitions);
+        return response()->json([
+            'data' => [
+                'status' => 'queued',
+            ],
+        ], 202);
     }
 
     public function competition(

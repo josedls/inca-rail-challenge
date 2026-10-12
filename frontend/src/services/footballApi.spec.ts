@@ -6,6 +6,7 @@ import {
   listCompetitions,
   listPlayers,
   listTeams,
+  syncCompetitions,
 } from './footballApi'
 import { request } from './httpClient'
 
@@ -35,16 +36,23 @@ describe('footballApi', () => {
 
     const result = await listCompetitions()
 
-    expect(result.syncQueued).toBe(false)
     expect(result.items[0]?.name).toBe('Premier League')
   })
 
-  it('detects when the initial catalog sync was queued', async () => {
-    vi.mocked(request).mockResolvedValue({ data: { status: 'queued' } })
+  it('lists an empty saved competition collection without syncing', async () => {
+    vi.mocked(request).mockResolvedValue({ data: [] })
 
     const result = await listCompetitions()
 
-    expect(result).toEqual({ items: [], syncQueued: true })
+    expect(result).toEqual({ items: [] })
+  })
+
+  it('requests the initial catalog synchronization explicitly', async () => {
+    vi.mocked(request).mockResolvedValue({ data: { status: 'queued' } })
+
+    await syncCompetitions()
+
+    expect(request).toHaveBeenCalledWith('/competitions/sync', { method: 'POST' })
   })
 
   it('gets a saved competition detail', async () => {

@@ -392,14 +392,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Competition list request accepted', function () {",
-                  "    pm.expect([200, 202]).to.include(pm.response.code);",
-                  "});",
-                  "",
-                  "if (pm.response.code === 202) {",
-                  "    pm.test('Competition synchronization was queued', function () {",
-                  "        pm.expect(pm.response.json().data.status).to.eql('queued');",
-                  "    });",
-                  "}"
+                  "    pm.response.to.have.status(200);",
+                  "});"
                 ]
               }
             }
@@ -422,6 +416,44 @@
               ]
             }
           },
+          "response": []
+        },
+        {
+          "name": "Sync competitions (async)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.response.to.have.status(202);",
+                  "pm.test('Competition synchronization was queued', function () {",
+                  "    pm.expect(pm.response.json().data.status).to.eql('queued');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/competitions/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "competitions",
+                "sync"
+              ]
+            }
+          },
+          "description": "Starts the asynchronous synchronization of the available competitions. Use List competitions to read the local catalog.",
           "response": []
         },
         {

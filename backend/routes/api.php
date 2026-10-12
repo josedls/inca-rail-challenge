@@ -16,6 +16,8 @@ Route::middleware(['auth:api', EnsureUserIsActive::class])->group(function (): v
 
     Route::get('/competitions', [FootballController::class, 'competitions'])
         ->middleware('permission:competitions.view');
+    Route::post('/competitions/sync', [FootballController::class, 'syncCompetitions'])
+        ->middleware('permission:competitions.view');
     Route::post('/competitions/{competition}/import', [FootballController::class, 'importCompetition'])
         ->middleware('permission:competitions.view');
     Route::get('/competitions/{competition}', [FootballController::class, 'competition'])
