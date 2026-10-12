@@ -67,6 +67,36 @@ function closeDrawer(): void {
         />
       </v-list-group>
 
+      <v-list-group
+        v-if="authStore.can('users.view') || authStore.can('roles.view') || authStore.can('permissions.view')"
+        value="administration"
+      >
+        <template #activator="{ props }">
+          <v-list-item v-bind="props" prepend-icon="mdi-shield-account-outline" title="Administración" />
+        </template>
+        <v-list-item
+          v-if="authStore.can('users.view')"
+          prepend-icon="mdi-account-multiple-outline"
+          title="Usuarios"
+          to="/admin/users"
+          @click="closeDrawer"
+        />
+        <v-list-item
+          v-if="authStore.can('roles.view')"
+          prepend-icon="mdi-account-key-outline"
+          title="Roles"
+          to="/admin/roles"
+          @click="closeDrawer"
+        />
+        <v-list-item
+          v-if="authStore.can('permissions.view')"
+          prepend-icon="mdi-key-outline"
+          title="Permisos"
+          to="/admin/permissions"
+          @click="closeDrawer"
+        />
+      </v-list-group>
+
       <v-divider class="my-2" />
       <v-list-item prepend-icon="mdi-account" :title="authStore.user?.name" />
       <v-list-item prepend-icon="mdi-logout" title="Cerrar sesión" @click="signOut" />

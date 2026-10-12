@@ -8,6 +8,9 @@ import TeamDetailView from '../../views/football/TeamDetailView.vue'
 import PlayersView from '../../views/football/PlayersView.vue'
 import HomeView from '../../views/HomeView.vue'
 import LoginView from '../../views/auth/LoginView.vue'
+import UsersView from '../../views/admin/UsersView.vue'
+import RolesView from '../../views/admin/RolesView.vue'
+import PermissionsView from '../../views/admin/PermissionsView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -47,6 +50,24 @@ export const router = createRouter({
           name: 'players',
           component: PlayersView,
         },
+        {
+          path: 'admin/users',
+          name: 'admin-users',
+          component: UsersView,
+          meta: { permission: 'users.view' },
+        },
+        {
+          path: 'admin/roles',
+          name: 'admin-roles',
+          component: RolesView,
+          meta: { permission: 'roles.view' },
+        },
+        {
+          path: 'admin/permissions',
+          name: 'admin-permissions',
+          component: PermissionsView,
+          meta: { permission: 'permissions.view' },
+        },
       ],
     },
     {
@@ -68,6 +89,10 @@ router.beforeEach((to) => {
   }
 
   if (to.name === 'login' && authStore.isAuthenticated) {
+    return { name: 'competitions' }
+  }
+
+  if (to.meta.permission && !authStore.can(to.meta.permission as string)) {
     return { name: 'competitions' }
   }
 
