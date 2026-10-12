@@ -15,9 +15,4 @@ final class GetSavedCompetition
     {
         return $this->catalogReader->competition($externalId);
     }
-
-    public function needsImport(int $externalId): bool
-    {
-        return ! $this->catalogReader->competitionHasTeams($externalId);
-    }
 }

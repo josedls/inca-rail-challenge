@@ -43,7 +43,9 @@ use App\Infrastructure\Users\EloquentUserCreator;
 use App\Infrastructure\Users\EloquentUserReader;
 use App\Infrastructure\Users\EloquentUserStatusChanger;
 use App\Infrastructure\Users\EloquentUserUpdater;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -91,6 +93,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        RateLimiter::for('football-data', function (): Limit {
+            return Limit::perMinute(10)->by('football-data');
+        });
     }
 }

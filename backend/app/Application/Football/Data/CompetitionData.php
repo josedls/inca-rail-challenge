@@ -9,5 +9,8 @@ final readonly class CompetitionData
         public string $name,
         public ?string $code,
         public ?string $emblem,
+        public ?string $importStatus = null,
+        public ?string $importError = null,
+        public ?string $lastSyncedAt = null,
     ) {}
 }

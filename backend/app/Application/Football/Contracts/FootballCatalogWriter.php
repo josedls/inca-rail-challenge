@@ -9,4 +9,12 @@ interface FootballCatalogWriter
     public function saveTeams(int $competitionId, array $teams): void;
 
     public function savePlayers(int $teamId, array $players): void;
+
+    public function markCompetitionProcessing(int $competitionId): void;
+
+    public function setPendingPlayerImports(int $competitionId, int $pendingImports): void;
+
+    public function markPlayerImportCompleted(int $competitionId): void;
+
+    public function markCompetitionFailed(int $competitionId, string $message): void;
 }

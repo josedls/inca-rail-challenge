@@ -15,12 +15,20 @@ final class Competition extends Model
         'code',
         'emblem',
         'last_synced_at',
+        'import_status',
+        'import_error',
+        'pending_player_imports',
+        'import_started_at',
+        'import_completed_at',
     ];
 
     protected function casts(): array
     {
         return [
             'last_synced_at' => 'datetime',
+            'pending_player_imports' => 'integer',
+            'import_started_at' => 'datetime',
+            'import_completed_at' => 'datetime',
         ];
     }
 

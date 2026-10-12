@@ -11,8 +11,6 @@ interface FootballCatalogReader
 
     public function competition(int $externalId): ?CompetitionData;
 
-    public function competitionHasTeams(int $externalId): bool;
-
     public function teams(): array;
 
     public function team(int $externalId): ?TeamData;

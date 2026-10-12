@@ -30,14 +30,6 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
         return $competition === null ? null : $this->competitionData($competition);
     }
 
-    public function competitionHasTeams(int $externalId): bool
-    {
-        return Competition::query()
-            ->where('external_id', $externalId)
-            ->whereHas('teams')
-            ->exists();
-    }
-
     public function teams(): array
     {
         return Team::query()
@@ -72,6 +64,9 @@ final class EloquentFootballCatalogReader implements FootballCatalogReader
             $competition->name,
             $competition->code,
             $competition->emblem,
+            $competition->import_status,
+            $competition->import_error,
+            $competition->last_synced_at?->toIso8601String(),
         );
     }
 

@@ -61,6 +61,61 @@ final class EloquentFootballCatalogWriter implements FootballCatalogWriter
         );
     }
 
+    public function markCompetitionProcessing(int $competitionId): void
+    {
+        Competition::query()
+            ->where('external_id', $competitionId)
+            ->update([
+                'import_status' => 'processing',
+                'import_error' => null,
+                'import_started_at' => now(),
+                'import_completed_at' => null,
+            ]);
+    }
+
+    public function setPendingPlayerImports(int $competitionId, int $pendingImports): void
+    {
+        Competition::query()
+            ->where('external_id', $competitionId)
+            ->update([
+                'pending_player_imports' => $pendingImports,
+                'import_status' => $pendingImports === 0 ? 'completed' : 'processing',
+                'import_completed_at' => $pendingImports === 0 ? now() : null,
+            ]);
+    }
+
+    public function markPlayerImportCompleted(int $competitionId): void
+    {
+        DB::transaction(function () use ($competitionId): void {
+            $competition = Competition::query()
+                ->where('external_id', $competitionId)
+                ->lockForUpdate()
+                ->first();
+
+            if ($competition === null || $competition->pending_player_imports === 0) {
+                return;
+            }
+
+            $pendingImports = $competition->pending_player_imports - 1;
+            $competition->update([
+                'pending_player_imports' => $pendingImports,
+                'import_status' => $pendingImports === 0 ? 'completed' : 'processing',
+                'import_completed_at' => $pendingImports === 0 ? now() : null,
+            ]);
+        });
+    }
+
+    public function markCompetitionFailed(int $competitionId, string $message): void
+    {
+        Competition::query()
+            ->where('external_id', $competitionId)
+            ->update([
+                'import_status' => 'failed',
+                'import_error' => $message,
+                'import_completed_at' => now(),
+            ]);
+    }
+
     private function saveTeam(TeamData $team): Team
     {
         return Team::query()->updateOrCreate(
