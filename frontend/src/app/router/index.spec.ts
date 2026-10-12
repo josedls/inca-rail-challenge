@@ -9,6 +9,10 @@ vi.mock('../../views/auth/LoginView.vue', () => ({
   default: { template: '<div />' },
 }))
 
+vi.mock('../../layouts/AppLayout.vue', () => ({
+  default: { template: '<div />' },
+}))
+
 import { router } from './index'
 
 describe('application router', () => {

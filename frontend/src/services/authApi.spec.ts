@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { login } from './authApi'
+import { getCurrentUser, login, logout } from './authApi'
 import { request } from './httpClient'
 
 vi.mock('./httpClient', () => ({
@@ -41,5 +41,31 @@ describe('authApi', () => {
     })
     expect(session.token).toBe('token-for-valeria')
     expect(session.user.roles).toEqual(['viewer'])
+  })
+
+  it('retrieves the current user', async () => {
+    vi.mocked(request).mockResolvedValue({
+      data: {
+        id: 1,
+        name: 'Valeria Quispe',
+        email: 'valeria.quispe@inca-rail.test',
+        is_active: true,
+        roles: ['viewer'],
+        permissions: ['competitions.view'],
+      },
+    })
+
+    const user = await getCurrentUser()
+
+    expect(request).toHaveBeenCalledWith('/me')
+    expect(user.email).toBe('valeria.quispe@inca-rail.test')
+  })
+
+  it('revokes the current session', async () => {
+    vi.mocked(request).mockResolvedValue(undefined)
+
+    await logout()
+
+    expect(request).toHaveBeenCalledWith('/logout', { method: 'POST' })
   })
 })

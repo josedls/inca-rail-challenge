@@ -22,3 +22,13 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
 
   return response.data
 }
+
+export async function getCurrentUser(): Promise<UserSession> {
+  const response = await request<{ data: UserSession }>('/me')
+
+  return response.data
+}
+
+export async function logout(): Promise<void> {
+  await request<void>('/logout', { method: 'POST' })
+}

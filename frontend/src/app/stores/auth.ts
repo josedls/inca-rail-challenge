@@ -51,6 +51,17 @@ export const useAuthStore = defineStore('auth', {
       )
     },
 
+    setUser(user: UserSession): void {
+      this.user = user
+
+      if (this.accessToken) {
+        localStorage.setItem(
+          SESSION_STORAGE_KEY,
+          JSON.stringify({ accessToken: this.accessToken, user }),
+        )
+      }
+    },
+
     clearSession(): void {
       this.accessToken = null
       this.user = null
